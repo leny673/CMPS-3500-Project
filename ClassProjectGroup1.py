@@ -20,8 +20,8 @@ import time
 
 # !!!! We can try https://towardsdatascience.com/python-pandas-data-frame-basics-b5cfbcd8c039
 # File name to load 
-#file = 'inputDataSample.csv'          # Has a TOTAL of 10002 written lines
-file = 'Boston_Lyft_Uber_Data.csv'    # Has a TOTAL of 693072? written lines
+#file = '.inputDataSample.csv'          # Has a TOTAL of 10002 written lines
+file = '.Boston_Lyft_Uber_Data.csv'    # Has a TOTAL of 693072? written lines
 #Open the file
 start = time.time()
 with open(file, newline='') as csvfile:
