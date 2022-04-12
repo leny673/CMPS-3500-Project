@@ -14,9 +14,6 @@
 # During the demo you will be ask to load several data sets with the same structure.
 
 # Data Loading: Read data from the csv files
-# Note - Input list will have up to 18 columns and one million rows and could be unordered and contain 
-# repeated, missing, incorrect and or misleading values.
-
 # !!!! We can try https://ankane.org/daru
 
 # Data Cleaning: Perform the following cleaning tasks: First load the csv file and store into an array or data frame

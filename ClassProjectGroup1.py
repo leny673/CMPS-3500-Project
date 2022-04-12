@@ -7,46 +7,47 @@
 # Student 3: 
 # Student 4:
 # DESCRIPTION: Implementation Basic Data Analysys Routines
-import csv
 import time
+import pandas as pd
 # ------ All functions must be implemented by the team, predesigned libraries like pandas (Python) and Daru(Ruby) are allowed. ------
 # Measuring running Times: Implement functions or methods to measure the total runtime as your script runs. All scripts will be run and measured in Odin.
 # Interfaces: A textual menu should be implemented in a way that the user could load several samples of the same data set (all data cleaning steps would be the same). 
 # During the demo you will be ask to load several data sets with the same structure.
 
 # Data Loading: Read data from the csv files
-# Note - Input list will have up to 18 columns and one million rows and could be unordered and contain 
-# repeated, missing, incorrect and or misleading values.
-
-# !!!! We can try https://towardsdatascience.com/python-pandas-data-frame-basics-b5cfbcd8c039
-# File name to load 
-#file = '.inputDataSample.csv'          # Has a TOTAL of 10002 written lines
-file = '.Boston_Lyft_Uber_Data.csv'    # Has a TOTAL of 693072? written lines
-#Open the file
-start = time.time()
-with open(file, newline='') as csvfile:
-    data = []
-    # For each row in the file...
-    for row in csv.reader( csvfile, delimiter= ','):
-        data.append(row)
-end = time.time()
-print("Elapsed time: ", end - start)
-# Will give length including the header row
-print("The length including the header row: ", len(data))
-print("The header row: ", data[0])
-print()
-# Pop the header row and read the length without header row
-data.pop(0)
-print("The length after the header row has been popped: ", len(data))
-print("The first row is now: ", data[0])
-
+print("Loading and cleaning input data set:")
+print("************************************")
+# https://towardsdatascience.com/python-pandas-data-frame-basics-b5cfbcd8c039
+# !!!REMOVE PERIOD IN FRONT OF FILE NAME ONCE DONE WITH PROJECT!!!
+file = '.US_Accidents_data.csv'         # Has a TOTAL of 711336 written lines
+# Load CSV file and store its data into a dataframe
+print(time.process_time(), " Starting Script")
+df = pd.read_csv(file, sep=',')
+#print(df)
+print(time.process_time(), " Loading US_Accidents_data.csv")
 # Data Cleaning: Perform the following cleaning tasks: First load the csv file and store into an array or data frame
-    # 1. Eliminate all rows with data missing in either of the following columns: ID, Severity, zipcpde, Start_Time, End_Time, Visivility(m), Weather_Condition or Country
+    # 1. Eliminate all rows with data missing in either of the following columns: ID, Severity, Zipcode, Start_Time, End_Time, Visibility(mi), Weather_Condition or Country
+df.drop(df[(df['ID'].isnull()) | (df['Severity'].isnull()) | (df['Zipcode'].isnull()) | (df['Start_Time'].isnull()) | (df['End_Time'].isnull()) | 
+    (df['Visibility(mi)'].isnull()) | (df['Weather_Condition'].isnull()) | (df['Country'].isnull())].index, inplace=True)
     # 2. Eliminate all rows with empty values in 3 or more columns
+    # thresh: number of required non-NA values...(df.shape[1] returns the number of columns) then minus 3 
+df.dropna(thresh=(df.shape[1])-3, inplace=True)
     # 3. Eliminate all rows with distance equal to zero
-    # 4. Only consider in your analysis the first 5 digits of the zip code
-    # 5. All accicent that lasted no time (The diference between End_time and Start_time is zero)
+df.drop(df[df['Distance(mi)'] == 0].index, inplace=True)
+    # 4. Only consider in your analysis the first 5 digits of the zipcode
+    # Test cases: df.loc[(df['Zipcode'].str.len() > 5), 'Zipcode']
+fixZips = df.loc[(df['Zipcode'].str.len() > 5), 'Zipcode'].index
+i = 0
+while i < len(fixZips):
+    index = fixZips[i]
+    df.at[index, "Zipcode"] = df["Zipcode"][index][0:5] 
+    i = i + 1
+    # 5. All accidents that lasted no time (The difference between End_Time and Start_Time is zero) (No data like this?)
+#df.drop(df[df['End_Time'] == df['Start_Time']].index, inplace=True)
+#df.drop(df[df['End_Time'] > df['Start_Time']].index, inplace=True)
 
+print(time.process_time(), " Performing Data Clean Up")
+print(time.process_time(), " Printing row count after data cleaning is finished: ", len(df.index))
 # Output: Your job is to implement the any functions and methods to answer the following questions about the data set provided:
 # For all these question use Start_Time as the reference date to determine the year and month of the accident.
     # 1. In what month were there more accidents reported?
