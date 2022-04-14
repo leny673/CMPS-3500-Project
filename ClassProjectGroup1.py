@@ -45,16 +45,45 @@ while i < len(fixZips):
     # 5. All accidents that lasted no time (The difference between End_Time and Start_Time is zero) (No data like this?)
 #df.drop(df[df['End_Time'] == df['Start_Time']].index, inplace=True)
 #df.drop(df[df['End_Time'] > df['Start_Time']].index, inplace=True)
-
 print(time.process_time(), " Performing Data Clean Up")
 print(time.process_time(), " Printing row count after data cleaning is finished: ", len(df.index))
+
+def getMonth(month):
+    theMonths = ["January","February","March","April", "May", "June", "July", "August", "September",
+     "October", "November","December"]
+    monthName = theMonths[month-1]
+    return monthName
 # Output: Your job is to implement the any functions and methods to answer the following questions about the data set provided:
 # For all these question use Start_Time as the reference date to determine the year and month of the accident.
     # 1. In what month were there more accidents reported?
-    # 2. What is the state that had the most accidents in 2020?
+newMonth = pd.to_datetime(df.Start_Time).dt.strftime('%m')
+n = 1
+finalMonth = int((newMonth.value_counts()[:n].index.tolist())[0])
+print(time.process_time()," 1. The month with the most accidents reported is:", getMonth(finalMonth))
+    # 2. What is the state that had the most accidents in 2020
+dfCopy = df.copy()
+dfCopy['Start_Time'] = pd.to_datetime(dfCopy['Start_Time']).dt.strftime('%Y')
+accidentsByYrInSt = dfCopy[['Start_Time','State']]
+mostByStInYr = accidentsByYrInSt[accidentsByYrInSt['Start_Time'] == '2020'].value_counts().index[0]
+state = mostByStInYr[1]
+print(time.process_time()," 2. The state with the most accidents reported in 2020 is:", state)
     # 3. What is the state that had the most accidents of severity 2 in 2021?
+accidentsByYr_SvtyInST = dfCopy[['Start_Time','State','Severity']]
+mostByYr_SvtyInST = accidentsByYr_SvtyInST[(accidentsByYr_SvtyInST['Start_Time'] == '2021') & (accidentsByYr_SvtyInST['Severity'] == 2)].value_counts().index[0]
+state = mostByYr_SvtyInST[1]
+print(time.process_time()," 3. The state with the most accidents of severity 2 in 2021 is:", state)
     # 4. What severity is the most common in Virginia?
+accidentsBySvtyInST = dfCopy[['State','Severity']]
+mostBySvtyInST = accidentsBySvtyInST[(accidentsBySvtyInST['State'] == 'VA')].value_counts().index[0]
+severity = mostBySvtyInST[1]
+print(time.process_time()," 4.",severity, "severity is the most common in VA.")
     # 5. What are the 5 cities that had the most accidents in 2019 in California?
+accidentsByYr_St_Cty = dfCopy[['Start_Time','State','City']]
+mostByYr_St_Cty = accidentsByYr_St_Cty[(accidentsByYr_St_Cty['State'] == 'CA') & (accidentsByYr_St_Cty['Start_Time'] == '2019')].value_counts().index[0:5]
+cities = mostByYr_St_Cty.droplevel(['Start_Time', 'State'])
+print(time.process_time()," 5. The 5 cities that had the most accidents in 2019 in CA are:")
+for i in cities:
+    print("\t\t\t\t\t\t\t\t",i)
     # 6. What was the average humidity and average temperature of all accidents of severity 4 that occurred in 2021?
     # 7. What are the 3 most common weather conditions (weather_conditions) when accidents occurred?
     # 8. What was the maximum visibility of all accidents of severity 2 that occurred in the state of New Hampshire?
