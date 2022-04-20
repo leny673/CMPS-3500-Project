@@ -10,6 +10,9 @@ __pycache__/
 .Boston_Lyft_Uber_Data.csv
 .InputDataSample.csv
 .US_Accidents_data.csv
+Boston_Lyft_Uber_Data.csv
+InputDataSample.csv
+US_Accidents_data.csv
 
 # Distribution / packaging
 .Python
