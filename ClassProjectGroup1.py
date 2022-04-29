@@ -14,16 +14,13 @@ import pandas as pd
 def print_menu():
     print()
     print(60 * "-" , "MENU" , 60 * "-")
-    print("1. Display our answers")
-    print("2. Get state with the most accidents in a given year.")
-    print("3. Get state that had the most accidents of a given severity and year.")
-    print("4. Get the most common severity in a given state.")
-    print("5. Get the 5 cities that had the most accidents in a given year and state.")
-    print("6. Get the average humidity and average temperature of all accidents of given severity and year.")
-    print("7. Get the maximum visibility of all accidents of a given severity and given state.")
-    print("8. Get the total accidents of each severity recorded in a given city.")
-    print("9. Get the longest accident (in hours) recorded in a given state, month period, and year.")
-    print("10. Exit")
+    print("1. Load Data")
+    print("2. Process Data.")
+    print("3. Print Answers.")
+    print("4. Search Accidents (Use City, State, and Zip Code).")
+    print("5. Search Accidents (Year, Month, and Day).")
+    print("6. Search Accidents (Temperature Range and Visibility Range).")
+    print("7. Exit")
     print(126 * "-")
 # Validate if input is in the dataframe
 def validateYear(input):
@@ -36,6 +33,13 @@ def validateYear(input):
 def validateMonth(input):
     dfCopy = df.copy()
     dfCopy['Start_Time'] = pd.to_datetime(dfCopy['Start_Time']).dt.strftime('%m')
+    if input not in dfCopy.values:
+        return False
+    else:
+        return True
+def validateDay(input):
+    dfCopy = df.copy()
+    dfCopy['Start_Time'] = pd.to_datetime(dfCopy['Start_Time']).dt.strftime('%d')
     if input not in dfCopy.values:
         return False
     else:
@@ -184,75 +188,107 @@ def getAnswers():
     print("[ ", time.process_time()," ] 10. The longest accident (in hours) recorded in Flordia in the Spring of 2022 is:")
     print("[ ", time.process_time()," ]", longestAcc(3, 5, "FL", 2022)/(3600), "hours.")
 
-# Data Loading: Read data from the csv files
-print("Loading and cleaning input data set:")
-print("************************************")
-# !!!REMOVE PERIOD IN FRONT OF FILE NAME ONCE DONE WITH PROJECT!!!
-file = '.US_Accidents_data.csv'                      # Has a TOTAL of 711336 written lines
-# Load CSV file and store its data into a dataframe
-start = time.process_time()
-print("[ ", start," ] Starting Script")
-print("[ ", time.process_time()," ] Loading US_Accidents_data.csv")
-df = pd.read_csv(file, sep=',')
-print("[ ", time.process_time()," ] Performing Data Clean Up...")
-# Data Cleaning: Performing the following cleaning tasks...
-    # 1. Eliminate all rows with data missing in either of the following columns: ID, Severity, Zipcode, 
-    # Start_Time, End_Time, Visibility(mi), Weather_Condition or Country
-df.drop(df[(df['ID'].isnull()) | (df['Severity'].isnull()) | (df['Zipcode'].isnull()) | 
-(df['Start_Time'].isnull()) | (df['End_Time'].isnull()) | (df['Visibility(mi)'].isnull()) | 
-(df['Weather_Condition'].isnull()) | (df['Country'].isnull())].index, inplace=True)
-    # 2. Eliminate all rows with empty values in 3 or more columns
-    # thresh: number of required non-NA values...(df.shape[1] returns the number of columns) then minus 3 
-df.dropna(thresh=(df.shape[1])-3, inplace=True)
-    # 3. Eliminate all rows with distance equal to zero
-df.drop(df[df['Distance(mi)'] == 0].index, inplace=True)
-    # 4. Only consider in your analysis the first 5 digits of the zipcode
-    # Test cases: df.loc[(df['Zipcode'].str.len() > 5), 'Zipcode']
-fixZips = df.loc[(df['Zipcode'].str.len() > 5), 'Zipcode'].index
-i = 0
-while i < len(fixZips):
-    index = fixZips[i]
-    df.at[index, "Zipcode"] = df["Zipcode"][index][0:5] 
-    i = i + 1
-    # 5. All accidents that lasted no time (The difference between End_Time and Start_Time is zero) (No data like this?)
-    #df.drop(df[df['End_Time'] == df['Start_Time']].index, inplace=True)
-print("[ ", time.process_time()," ] Printing row count after data cleaning is finished:")
-print("[ ", time.process_time()," ]", len(df.index))
-
-getAnswers()
-print("\nTotal Running Time (In Minutes):", (time.process_time())/(60), "minutes")
-
 # Interfaces: A textual menu should be implemented in a way that the user could load several samples of the same data 
 # set (all data cleaning steps would be the same). 
 # During the demo you will be ask to load several data sets with the same structure.
-loop = True      
+loop = True  
+isLoaded = False     
+isProcessed = False
 while loop:          
     print_menu()
-    choice = input("Enter your choice [1-10]: ")
+    choice = input("Enter your choice [1-7]: ")
     if choice == '1':     
-        getAnswers()
-    elif choice == '2':
-        year = input("Please enter a year between 2016 and 2021: ")
-        if(validateYear(year) == False):
-            print("There is no data recorded under that year.")
-        else:
-            state = mostAccInStByYR(year)
-            print("The state with the most accidents reported in", year, "is:", state)
-    elif choice == '3':
+        print ("1")
+        # Data Loading: Read data from the csv files
+        print("Loading input data set:")
+        print("************************************")
+        start = time.process_time()
+        print("[ ", start," ] Starting Script")
+        # !!!REMOVE PERIOD IN FRONT OF FILE NAME ONCE DONE WITH PROJECT!!!
+        file = '.US_Accidents_data.csv'                      # Has a TOTAL of 711336 written lines
+        # Load CSV file and store its data into a dataframe
+        print("[ ", time.process_time()," ] Loading US_Accidents_data.csv")
+        df = pd.read_csv(file, sep=',')
+        end = time.process_time()
+        print("Time to load is: ", (end - start), "seconds")
+        isLoaded = True
+    elif choice == '2' and isLoaded == True:
+        print ("2")
+        start = time.process_time()
+        print("[ ", start," ] Performing Data Clean Up...")
+            # Data Cleaning: Performing the following cleaning tasks...
+            # 1. Eliminate all rows with data missing in either of the following columns: ID, Severity, Zipcode, 
+            # Start_Time, End_Time, Visibility(mi), Weather_Condition or Country
+        df.drop(df[(df['ID'].isnull()) | (df['Severity'].isnull()) | (df['Zipcode'].isnull()) | 
+        (df['Start_Time'].isnull()) | (df['End_Time'].isnull()) | (df['Visibility(mi)'].isnull()) | 
+        (df['Weather_Condition'].isnull()) | (df['Country'].isnull())].index, inplace=True)
+            # 2. Eliminate all rows with empty values in 3 or more columns
+            # thresh: number of required non-NA values...(df.shape[1] returns the number of columns) then minus 3 
+        df.dropna(thresh=(df.shape[1])-3, inplace=True)
+            # 3. Eliminate all rows with distance equal to zero
+        df.drop(df[df['Distance(mi)'] == 0].index, inplace=True)
+            # 4. Only consider in your analysis the first 5 digits of the zipcode
+            # Test cases: df.loc[(df['Zipcode'].str.len() > 5), 'Zipcode']
+        fixZips = df.loc[(df['Zipcode'].str.len() > 5), 'Zipcode'].index
+        i = 0
+        while i < len(fixZips):
+            index = fixZips[i]
+            df.at[index, "Zipcode"] = df["Zipcode"][index][0:5] 
+            i = i + 1
+            # 5. All accidents that lasted no time (The difference between End_Time and Start_Time is zero) (No data like this?)
+            #df.drop(df[df['End_Time'] == df['Start_Time']].index, inplace=True)
+        print("[ ", time.process_time()," ] Printing row count after data cleaning is finished:")
+        print("[ ", time.process_time()," ]", len(df.index))
+        end = time.process_time()
+        print("Time to process is: ", (end - start))
+        isProcessed = True
+    elif choice == '3' and isProcessed == True:
         print ("3")
-    elif choice == '4':
+        getAnswers()
+    elif choice == '4' and isProcessed == True:
         print ("4")
-    elif choice == '5':
+        cityName = input("Enter a City Name: ")
+        while anyOtherValidation(cityName) != True:
+                cityName = input("Invalid value, enter again: ")
+        stateName = input("Enter a State Name: ")
+        while anyOtherValidation(stateName) != True:
+                stateName = input("Invalid value, enter again: ")
+        zipCode = input("Enter a ZIP Code: ")
+        while anyOtherValidation(zipCode) != True:
+                zipCode = input("Invalid value, enter again: ")
+        accidentsBySt_Cty_Zip = df[['City', 'State', 'Zipcode']]
+        totalBySt_Cty_Zip = accidentsBySt_Cty_Zip[(accidentsBySt_Cty_Zip['City'] == cityName) 
+        & (accidentsBySt_Cty_Zip['State'] == stateName) 
+        & (accidentsBySt_Cty_Zip['Zipcode'] == zipCode)].count()
+        print ("There were ", totalBySt_Cty_Zip.value_counts().index[0] , "accidents.")
+    elif choice == '5' and isProcessed == True:
         print ("5")
-    elif choice == '6':
+        accYear = input("Enter a Year: ")
+        while validateYear(accYear) != True:
+                accYear = input("Invalid value, enter again: ")
+        accMonth = input("Enter a Month: ")
+        while validateMonth(accMonth) != True:
+                accMonth = input("Invalid value, enter again: ")
+        accDay = input("Enter a Day: ")
+        while validateDay(accDay) != True:
+                accDay = input("Invalid value, enter again: ")
+        dateStr = accYear + accMonth + accDay
+        dateStr = pd.to_datetime(dateStr).strftime('%Y%m%d')
+        df['Start_Time'] = pd.to_datetime(df['Start_Time']).dt.strftime('%Y%m%d')
+        accidentsByYr_Mth_Day = df[['Start_Time']]
+        totalByYr_Mth_Day = accidentsByYr_Mth_Day[(accidentsByYr_Mth_Day['Start_Time'] == dateStr)].count()
+        print ("There were ", totalByYr_Mth_Day.value_counts().index[0] , "accidents.")
+    elif choice == '6' and isProcessed == True:
         print ("6")
+        minTemp = input("Enter a Minimum Temperature (F): ")
+        maxTemp = input("Enter a Maximum Temperature (F): ")
+        minVis = input("Enter a Minimum Visibility (mi): ")
+        maxVis = input("Enter a Maximum Visibility (mi): ")
+        print ("There were accidents.")
     elif choice == '7':
-        print ("7")
-    elif choice == '8':
-        print ("8")
-    elif choice == '9':
-        print ("9")
-    elif choice == '10':
         loop = False
+        print ("7")
     else:
-        print("Invalid input. Please enter a valid choice...")
+        print("Invalid input or you need to load/process data. Please enter a valid choice...")
+
+print("\nTotal Running Time (In Minutes):", (time.process_time())/(60), "minutes")
