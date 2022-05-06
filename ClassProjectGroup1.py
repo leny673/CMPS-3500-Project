@@ -7,7 +7,7 @@
 # Student 3: 
 # Student 4:
 # DESCRIPTION: Implementation Basic Data Analysys Routines
-# TO DO: LINES 402, 353, 310
+# TO DO: LINES 332, 376
 import time
 import pandas as pd
 
@@ -32,6 +32,7 @@ def validateYear(input):
         return False
     else:
         return True
+
 def validateMonth(input):
     dfCopy = df.copy()
     dfCopy['Start_Time'] = pd.to_datetime(dfCopy['Start_Time']).dt.strftime('%m')
@@ -39,6 +40,7 @@ def validateMonth(input):
         return False
     else:
         return True
+
 def validateDay(input):
     dfCopy = df.copy()
     dfCopy['Start_Time'] = pd.to_datetime(dfCopy['Start_Time']).dt.strftime('%d')
@@ -46,6 +48,19 @@ def validateDay(input):
         return False
     else:
         return True
+
+def validateTemp(input):
+    if input not in df['Temperature(F)'].values:
+        return False
+    else:
+        return True
+
+def validateVis(input):
+    if input not in df['Visibility(mi)'].values:
+        return False
+    else:
+        return True
+
 def anyOtherValidation(input):
     if input not in df.values:
         return False
@@ -251,6 +266,7 @@ while loop:
     choice = input("Enter your choice [1-7]: ")
     try:
         choice = int(choice)
+
         # Data Loading: Read data from the csv files
         if choice == 1:     
             print("\nLoading input data set:\n************************************")
@@ -265,9 +281,11 @@ while loop:
             end = round(time.process_time(), 4)
             print("\nTime to load is: ", round((end - start), 4), "seconds")
             isLoaded = True
+        
         # Make sure data has been loaded first in order to clean data...
         elif choice == 2 and isLoaded == False:
             print("You need to load data first. Please enter '1', then try again...")
+        
         # Data Cleaning: Performing the cleaning tasks
         elif choice == 2 and isLoaded == True:
             print("\nCleaning data set:\n************************************")
@@ -298,17 +316,20 @@ while loop:
             end = round(time.process_time(), 4)
             print("\nTime to process is: ", round((end - start), 3))
             isProcessed = True
+        
         # Make sure data has been loaded/processed (cleaned) first in order to display data...
         elif (choice >= 3 and choice <= 6) and isLoaded == False:
             print("You need to load data first. Please enter '1', then try again...")
         elif (choice >= 3 and choice <= 6) and isProcessed == False:
             print("You need to process data first. Please enter '2', then try again...")
+        
         # Display answers to questions
         elif choice == 3 and isProcessed == True:
             getAnswers()
+        
         # Searching capability
         elif choice == 4 and isProcessed == True:
-            # TO DO: Validate state, city, and zip (make sure city is in the given state, etc...)
+            # TO DO: Validate state, city, and zip (make sure city is in the given state, etc...)?
             print("\nSearch Accidents:\n*****************")
             # Copy city, state, and zipcode columns 
             accidentsBySt_Cty_Zip = df[['City', 'State', 'Zipcode']]
@@ -320,7 +341,7 @@ while loop:
                 selectByState = pd.notnull(accidentsBySt_Cty_Zip['State'])
             else:
                 while anyOtherValidation(stateName) != True:
-                    stateName = input("Invalid value, enter again: ")
+                    stateName = input("Invalid value, enter again or press enter to search for all possibilities: ")
                     if not stateName:
                         selectByState = pd.notnull(accidentsBySt_Cty_Zip['State'])
                 selectByState = accidentsBySt_Cty_Zip['State'] == stateName
@@ -330,7 +351,7 @@ while loop:
                 selectByCity = pd.notnull(accidentsBySt_Cty_Zip['City'])
             else:
                 while anyOtherValidation(cityName) != True:
-                    cityName = input("Invalid value, enter again: ")
+                    cityName = input("Invalid value, enter again or press enter to search for all possibilities: ")
                     if not cityName:
                         selectByCity = pd.notnull(accidentsBySt_Cty_Zip['City'])
                 selectByCity = accidentsBySt_Cty_Zip['City'] == cityName
@@ -340,7 +361,7 @@ while loop:
                 selectByZip = pd.notnull(accidentsBySt_Cty_Zip['Zipcode'])
             else:
                 while anyOtherValidation(zipCode) != True:
-                    zipCode = input("Invalid value, enter again: ")
+                    zipCode = input("Invalid value, enter again or press enter to search for all possibilities: ")
                     if not zipCode:
                         selectByZip = pd.notnull(accidentsBySt_Cty_Zip['Zipcode'])
                 selectByZip = accidentsBySt_Cty_Zip['Zipcode'] == zipCode
@@ -349,9 +370,10 @@ while loop:
             totalBySt_Cty_Zip = accidentsBySt_Cty_Zip[(selectByState) & (selectByCity) & (selectByZip)].count()
             print ("\nThere were", totalBySt_Cty_Zip.value_counts().index[0] , "accidents.")
             end = round(time.process_time(), 5)
-            print("\nTime to perform search is:", round((end - start), 4), "seconds\n")
+            print("\nTime to perform search is:", round((end - start), 4), "seconds")
+        
         elif choice == 5 and isProcessed == True:
-            # TO DO: Takes about 17-20 seconds, any faster way? Also inform user that no data is found for the given year/month/day, if it comes to that.
+            # TO DO: Takes about 15-30 seconds, any faster way?
             print("\nSearch Accidents:\n*****************")
             # Copy start time column
             dfCopy = df.copy()
@@ -365,7 +387,7 @@ while loop:
                 selectByYear = pd.notnull(pd.to_datetime(accidentsByYr_Mth_Day['Start_Time']).dt.strftime('%Y'))
             else:
                 while validateYear(accYear) == False:
-                    accYear = input("Invalid value, enter again: ")
+                    accYear = input("Invalid value, enter again or press enter to search for all possibilities: ")
                     if not accYear:
                         selectByYear = pd.notnull(pd.to_datetime(accidentsByYr_Mth_Day['Start_Time']).dt.strftime('%Y'))
                 selectByYear = pd.to_datetime(accidentsByYr_Mth_Day['Start_Time']).dt.strftime('%Y') == accYear
@@ -377,7 +399,7 @@ while loop:
                 if len(accMonth) < 2:
                     accMonth = '0' + accMonth
                 while validateMonth(accMonth) == False:
-                    accMonth = input("Invalid value, enter again: ")
+                    accMonth = input("Invalid value, enter again or press enter to search for all possibilities: ")
                     if not accMonth:
                         selectByMonth = pd.notnull(pd.to_datetime(accidentsByYr_Mth_Day['Start_Time']).dt.strftime('%m'))
                 selectByMonth = pd.to_datetime(accidentsByYr_Mth_Day['Start_Time']).dt.strftime('%m') == accMonth
@@ -389,7 +411,7 @@ while loop:
                 if len(accDay) < 2:
                     accDay = '0' + accDay
                 while validateDay(accDay) == False:
-                    accDay = input("Invalid value, enter again: ")
+                    accDay = input("Invalid value, enter again or press enter to search for all possibilities: ")
                     if not accDay:
                         selectByDay = pd.notnull(pd.to_datetime(accidentsByYr_Mth_Day['Start_Time']).dt.strftime('%d'))
                 selectByDay = pd.to_datetime(accidentsByYr_Mth_Day['Start_Time']).dt.strftime('%d') == accDay
@@ -398,19 +420,106 @@ while loop:
             totalByYr_Mth_Day = accidentsByYr_Mth_Day[(selectByYear) & (selectByMonth) & (selectByDay)].count()
             print("\nThere were",totalByYr_Mth_Day.value_counts().index[0], "accidents.")
             end = round(time.process_time(), 5)
-            print("\nTime to perform search is:", round((end - start), 4), "seconds\n")
+            print("\nTime to perform search is:", round((end - start), 4), "seconds")
+        
         elif choice == 6 and isProcessed == True:
-            # TO DO:
             print("\nSearch Accidents:\n*****************")
-            # Prompt user for a min/man temperature and min/max visibility
-            minTemp = input("Enter a Minimum Temperature (F): ")
-            maxTemp = input("Enter a Maximum Temperature (F): ")
-            minVis = input("Enter a Minimum Visibility (mi): ")
-            maxVis = input("Enter a Maximum Visibility (mi): ")
-            print ("There were accidents.")
+            # Copy temperature and visibility columns
+            accidentsByTemp_Vis = df[['Temperature(F)', 'Visibility(mi)']]
+            # Prompt user for a min/max temperature and min/max visibility
+            # --- If an empty value is inputted, search using all possibilities
+            start = round(time.process_time(), 5)
+            askForMinTemp = True
+            while askForMinTemp:
+                minTemp = input("Enter a Minimum Temperature (F): ")
+                if not minTemp:
+                    selectByMinTemp = pd.notnull(accidentsByTemp_Vis['Temperature(F)'])
+                    askForMinTemp = False
+                else:
+                    try:
+                        minTemp = float(minTemp)
+                        while validateTemp(minTemp) == False:
+                            minTemp = input("Invalid value, enter again or press enter to search for all possibilities: ")
+                        if not minTemp:
+                            selectByMinTemp = pd.notnull(accidentsByTemp_Vis['Temperature(F)'])
+                            askForMinTemp = False
+                        selectByMinTemp = accidentsByTemp_Vis['Temperature(F)'] > minTemp
+                        askForMinTemp = False
+                    except ValueError:
+                        print("Invalid input. Please enter a number choice.")
+                
+            askForMaxTemp = True
+            while askForMaxTemp:
+                maxTemp = input("Enter a Maximum Temperature (F): ")
+                if not maxTemp:
+                    selectByMaxTemp = pd.notnull(accidentsByTemp_Vis['Temperature(F)'])
+                    askForMaxTemp = False
+                else:
+                    try:
+                        maxTemp = float(maxTemp)
+                        if maxTemp < minTemp:
+                            print("Invalid input. Maximum temperature must be greater than the minimum temperature.")
+                        else:
+                            while validateTemp(maxTemp) == False:
+                                maxTemp = input("Invalid value, enter again or press enter to search for all possibilities: ")
+                            if not maxTemp:
+                                selectByMaxTemp = pd.notnull(accidentsByTemp_Vis['Temperature(F)'])
+                                askForMaxTemp = False
+                            selectByMaxTemp = accidentsByTemp_Vis['Temperature(F)'] < maxTemp
+                            askForMaxTemp = False
+                    except ValueError:
+                        print("Invalid input. Please enter a number choice.")
+
+            askForMinVis = True
+            while askForMinVis:
+                minVis = input("Enter a Minimum Visibility (mi): ")
+                if not minVis:
+                    selectByMinVis = pd.notnull(accidentsByTemp_Vis['Visibility(mi)'])
+                    askForMinVis = False
+                else:
+                    try:
+                        minVis = float(minVis)
+                        while validateVis(minVis) == False:
+                            minVis = input("Invalid value, enter again or press enter to search for all possibilities: ")
+                        if not minVis:
+                            selectByMinVis = pd.notnull(accidentsByTemp_Vis['Visibility(mi)'])
+                            askForMinVis = False
+                        selectByMinVis = accidentsByTemp_Vis['Visibility(mi)'] > minVis
+                        askForMinVis = False
+                    except ValueError:
+                        print("Invalid input. Please enter a number choice.")
+
+            askForMaxVis = True
+            while askForMaxVis:
+                maxVis = input("Enter a Maximum Visibility (mi): ")
+                if not maxVis:
+                    selectByMaxVis = pd.notnull(accidentsByTemp_Vis['Visibility(mi)'])
+                    askForMaxVis = False
+                else:
+                    try:
+                        maxVis = float(maxVis)
+                        if maxVis < minVis:
+                            print("Invalid input. Maximum visibility must be greater than the minimum visibility.")
+                        else:
+                            while validateVis(maxVis) == False:
+                                maxVis = input("Invalid value, enter again or press enter to search for all possibilities: ")
+                            if not maxVis:
+                                selectByMaxVis = pd.notnull(accidentsByTemp_Vis['Visibility(mi)'])
+                                askForMaxVis = False
+                            selectByMaxVis = accidentsByTemp_Vis['Visibility(mi)'] < maxVis
+                            askForMaxVis = False
+                    except ValueError:
+                        print("Invalid input. Please enter a number choice.")
+
+            # Start searching for rows by given data
+            totalByTemp_Vis = accidentsByTemp_Vis[(selectByMinTemp) & (selectByMaxTemp) & (selectByMinVis) & (selectByMaxVis)].count()
+            print("\nThere were",totalByTemp_Vis.value_counts().index[0], "accidents.")
+            end = round(time.process_time(), 5)
+            print("\nTime to perform search is:", round((end - start), 4), "seconds")
+        
         elif choice == 7:
             loop = False
-            print("\nTotal Running Time (In Minutes):", round(time.process_time()/(60), 5), "minutes\n")
+            print("\nTotal Running Time (In Minutes):", round(time.process_time()/(60), 5), "minutes")
         else:
             print("Invalid input. Please enter a valid choice [1-7].")
     except ValueError:
