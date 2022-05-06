@@ -7,7 +7,7 @@
 # Student 3: 
 # Student 4:
 # DESCRIPTION: Implementation Basic Data Analysys Routines
-# TO DO: LINES 332, 376
+# TO DO: LINES 438
 import time
 import pandas as pd
 
@@ -25,7 +25,57 @@ def print_menu():
     print(126 * "-")
 
 # Validatation: Validate if input is in the dataframe
+def validateState(input):
+    if not input:
+        return True
+    if input not in df['State'].values:
+        return False
+    else:
+        return True
+
+def validateCity(city, state):
+    if not city:
+        return True
+    if city not in df['City'].values:
+        return False
+    else:
+        validateCityInSt = df[['State','City']]
+        selectByState = validateCityInSt['State'] == state
+        possibleCities = validateCityInSt[selectByState]
+        if city not in possibleCities['City'].values:
+            return False
+        else:
+            return True
+
+def validateZip(zip, city, state):
+    if not zip:
+        return True
+    if zip not in df['Zipcode'].values:
+        return False
+    else:
+        if city:
+            validateZipInCity = df[['Zipcode','City']]
+            selectByCity = validateZipInCity['City'] == city
+            possibleZips = validateZipInCity[selectByCity]
+            if zip not in possibleZips['Zipcode'].values:
+                return False
+            else:
+                return True
+        else:
+            if state:
+                validateZipInSt = df[['Zipcode','State']]
+                selectByState = validateZipInSt['State'] == state
+                possibleZips = validateZipInSt[selectByState]
+                if zip not in possibleZips['Zipcode'].values:
+                    return False
+                else:
+                    return True
+            else:
+                return True
+
 def validateYear(input):
+    if not input:
+        return True
     dfCopy = df.copy()
     dfCopy['Start_Time'] = pd.to_datetime(dfCopy['Start_Time']).dt.strftime('%Y')
     if input not in dfCopy.values:
@@ -34,6 +84,8 @@ def validateYear(input):
         return True
 
 def validateMonth(input):
+    if not input:
+        return True
     dfCopy = df.copy()
     dfCopy['Start_Time'] = pd.to_datetime(dfCopy['Start_Time']).dt.strftime('%m')
     if input not in dfCopy.values:
@@ -42,6 +94,8 @@ def validateMonth(input):
         return True
 
 def validateDay(input):
+    if not input:
+        return True
     dfCopy = df.copy()
     dfCopy['Start_Time'] = pd.to_datetime(dfCopy['Start_Time']).dt.strftime('%d')
     if input not in dfCopy.values:
@@ -50,18 +104,24 @@ def validateDay(input):
         return True
 
 def validateTemp(input):
+    if not input:
+        return True
     if input not in df['Temperature(F)'].values:
         return False
     else:
         return True
 
 def validateVis(input):
+    if not input:
+        return True
     if input not in df['Visibility(mi)'].values:
         return False
     else:
         return True
 
 def anyOtherValidation(input):
+    if not input:
+        return True
     if input not in df.values:
         return False
     else:
@@ -329,42 +389,44 @@ while loop:
         
         # Searching capability
         elif choice == 4 and isProcessed == True:
-            # TO DO: Validate state, city, and zip (make sure city is in the given state, etc...)?
             print("\nSearch Accidents:\n*****************")
             # Copy city, state, and zipcode columns 
             accidentsBySt_Cty_Zip = df[['City', 'State', 'Zipcode']]
             # Prompt user for city, state, and zipcode
             # --- If an empty value is inputted, search using all possibilities
             start = round(time.process_time(), 5)
-            stateName = input("Enter a State Name: ")
+            stateName = input("Enter State (Ex. California as CA): ")
             if not stateName:
                 selectByState = pd.notnull(accidentsBySt_Cty_Zip['State'])
             else:
-                while anyOtherValidation(stateName) != True:
+                while validateState(stateName) == False:
                     stateName = input("Invalid value, enter again or press enter to search for all possibilities: ")
-                    if not stateName:
-                        selectByState = pd.notnull(accidentsBySt_Cty_Zip['State'])
-                selectByState = accidentsBySt_Cty_Zip['State'] == stateName
+                if not stateName:
+                    selectByState = pd.notnull(accidentsBySt_Cty_Zip['State'])
+                else:
+                    selectByState = accidentsBySt_Cty_Zip['State'] == stateName
 
             cityName = input("Enter a City Name: ")
             if not cityName:
                 selectByCity = pd.notnull(accidentsBySt_Cty_Zip['City'])
             else:
-                while anyOtherValidation(cityName) != True:
+                while validateCity(cityName, stateName) == False:
                     cityName = input("Invalid value, enter again or press enter to search for all possibilities: ")
-                    if not cityName:
-                        selectByCity = pd.notnull(accidentsBySt_Cty_Zip['City'])
-                selectByCity = accidentsBySt_Cty_Zip['City'] == cityName
+                if not cityName:
+                    selectByCity = pd.notnull(accidentsBySt_Cty_Zip['City'])
+                else: 
+                    selectByCity = accidentsBySt_Cty_Zip['City'] == cityName
 
             zipCode = input("Enter a ZIP Code: ")
             if not zipCode:
                 selectByZip = pd.notnull(accidentsBySt_Cty_Zip['Zipcode'])
             else:
-                while anyOtherValidation(zipCode) != True:
+                while validateZip(zipCode, cityName, stateName) == False:
                     zipCode = input("Invalid value, enter again or press enter to search for all possibilities: ")
-                    if not zipCode:
-                        selectByZip = pd.notnull(accidentsBySt_Cty_Zip['Zipcode'])
-                selectByZip = accidentsBySt_Cty_Zip['Zipcode'] == zipCode
+                if not zipCode:
+                    selectByZip = pd.notnull(accidentsBySt_Cty_Zip['Zipcode'])
+                else:
+                    selectByZip = accidentsBySt_Cty_Zip['Zipcode'] == zipCode
 
             # Start searching for rows by given data
             totalBySt_Cty_Zip = accidentsBySt_Cty_Zip[(selectByState) & (selectByCity) & (selectByZip)].count()
@@ -373,7 +435,7 @@ while loop:
             print("\nTime to perform search is:", round((end - start), 4), "seconds")
         
         elif choice == 5 and isProcessed == True:
-            # TO DO: Takes about 15-30 seconds, any faster way?
+            # TO DO: Takes about 15-30+ seconds, any faster way?
             print("\nSearch Accidents:\n*****************")
             # Copy start time column
             dfCopy = df.copy()
@@ -388,9 +450,10 @@ while loop:
             else:
                 while validateYear(accYear) == False:
                     accYear = input("Invalid value, enter again or press enter to search for all possibilities: ")
-                    if not accYear:
-                        selectByYear = pd.notnull(pd.to_datetime(accidentsByYr_Mth_Day['Start_Time']).dt.strftime('%Y'))
-                selectByYear = pd.to_datetime(accidentsByYr_Mth_Day['Start_Time']).dt.strftime('%Y') == accYear
+                if not accYear:
+                    selectByYear = pd.notnull(pd.to_datetime(accidentsByYr_Mth_Day['Start_Time']).dt.strftime('%Y'))
+                else:
+                    selectByYear = pd.to_datetime(accidentsByYr_Mth_Day['Start_Time']).dt.strftime('%Y') == accYear
 
             accMonth = input("Enter a Month: ")
             if not accMonth:
@@ -400,9 +463,10 @@ while loop:
                     accMonth = '0' + accMonth
                 while validateMonth(accMonth) == False:
                     accMonth = input("Invalid value, enter again or press enter to search for all possibilities: ")
-                    if not accMonth:
-                        selectByMonth = pd.notnull(pd.to_datetime(accidentsByYr_Mth_Day['Start_Time']).dt.strftime('%m'))
-                selectByMonth = pd.to_datetime(accidentsByYr_Mth_Day['Start_Time']).dt.strftime('%m') == accMonth
+                if not accMonth:
+                    selectByMonth = pd.notnull(pd.to_datetime(accidentsByYr_Mth_Day['Start_Time']).dt.strftime('%m'))
+                else:
+                    selectByMonth = pd.to_datetime(accidentsByYr_Mth_Day['Start_Time']).dt.strftime('%m') == accMonth
 
             accDay = input("Enter a Day: ")
             if not accDay:
@@ -412,9 +476,10 @@ while loop:
                     accDay = '0' + accDay
                 while validateDay(accDay) == False:
                     accDay = input("Invalid value, enter again or press enter to search for all possibilities: ")
-                    if not accDay:
-                        selectByDay = pd.notnull(pd.to_datetime(accidentsByYr_Mth_Day['Start_Time']).dt.strftime('%d'))
-                selectByDay = pd.to_datetime(accidentsByYr_Mth_Day['Start_Time']).dt.strftime('%d') == accDay
+                if not accDay:
+                    selectByDay = pd.notnull(pd.to_datetime(accidentsByYr_Mth_Day['Start_Time']).dt.strftime('%d'))
+                else:
+                    selectByDay = pd.to_datetime(accidentsByYr_Mth_Day['Start_Time']).dt.strftime('%d') == accDay
 
             # Start searching for rows by given data
             totalByYr_Mth_Day = accidentsByYr_Mth_Day[(selectByYear) & (selectByMonth) & (selectByDay)].count()
@@ -443,8 +508,9 @@ while loop:
                         if not minTemp:
                             selectByMinTemp = pd.notnull(accidentsByTemp_Vis['Temperature(F)'])
                             askForMinTemp = False
-                        selectByMinTemp = accidentsByTemp_Vis['Temperature(F)'] > minTemp
-                        askForMinTemp = False
+                        else:
+                            selectByMinTemp = accidentsByTemp_Vis['Temperature(F)'] > minTemp
+                            askForMinTemp = False
                     except ValueError:
                         print("Invalid input. Please enter a number choice.")
                 
@@ -457,16 +523,18 @@ while loop:
                 else:
                     try:
                         maxTemp = float(maxTemp)
-                        if maxTemp < minTemp:
-                            print("Invalid input. Maximum temperature must be greater than the minimum temperature.")
+                        if minTemp:
+                            if maxTemp < minTemp:
+                                print("Invalid input. Maximum temperature must be greater than the minimum temperature.")
                         else:
                             while validateTemp(maxTemp) == False:
                                 maxTemp = input("Invalid value, enter again or press enter to search for all possibilities: ")
                             if not maxTemp:
                                 selectByMaxTemp = pd.notnull(accidentsByTemp_Vis['Temperature(F)'])
                                 askForMaxTemp = False
-                            selectByMaxTemp = accidentsByTemp_Vis['Temperature(F)'] < maxTemp
-                            askForMaxTemp = False
+                            else:
+                                selectByMaxTemp = accidentsByTemp_Vis['Temperature(F)'] < maxTemp
+                                askForMaxTemp = False
                     except ValueError:
                         print("Invalid input. Please enter a number choice.")
 
@@ -484,8 +552,9 @@ while loop:
                         if not minVis:
                             selectByMinVis = pd.notnull(accidentsByTemp_Vis['Visibility(mi)'])
                             askForMinVis = False
-                        selectByMinVis = accidentsByTemp_Vis['Visibility(mi)'] > minVis
-                        askForMinVis = False
+                        else:
+                            selectByMinVis = accidentsByTemp_Vis['Visibility(mi)'] > minVis
+                            askForMinVis = False
                     except ValueError:
                         print("Invalid input. Please enter a number choice.")
 
@@ -498,16 +567,18 @@ while loop:
                 else:
                     try:
                         maxVis = float(maxVis)
-                        if maxVis < minVis:
-                            print("Invalid input. Maximum visibility must be greater than the minimum visibility.")
+                        if minVis:
+                            if maxVis < minVis:
+                                print("Invalid input. Maximum visibility must be greater than the minimum visibility.")
                         else:
                             while validateVis(maxVis) == False:
                                 maxVis = input("Invalid value, enter again or press enter to search for all possibilities: ")
                             if not maxVis:
                                 selectByMaxVis = pd.notnull(accidentsByTemp_Vis['Visibility(mi)'])
                                 askForMaxVis = False
-                            selectByMaxVis = accidentsByTemp_Vis['Visibility(mi)'] < maxVis
-                            askForMaxVis = False
+                            else:
+                                selectByMaxVis = accidentsByTemp_Vis['Visibility(mi)'] < maxVis
+                                askForMaxVis = False
                     except ValueError:
                         print("Invalid input. Please enter a number choice.")
 
@@ -519,7 +590,7 @@ while loop:
         
         elif choice == 7:
             loop = False
-            print("\nTotal Running Time (In Minutes):", round(time.process_time()/(60), 5), "minutes")
+            print("\nTotal Running Time (In Minutes):", round(time.process_time()/(60), 5), "minutes\n")
         else:
             print("Invalid input. Please enter a valid choice [1-7].")
     except ValueError:
