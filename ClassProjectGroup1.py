@@ -411,7 +411,7 @@ while loop:
                 selectByState = pd.notnull(accidentsBySt_Cty_Zip['State'])
             else:
                 while not simpleValidation('State', stateName):
-                    stateName = input("Invalid value, enter again or press enter to search for all possibilities: ")
+                    stateName = input("\nInvalid value, enter again or press enter to search for all possibilities: ")
                 if not stateName:
                     selectByState = pd.notnull(accidentsBySt_Cty_Zip['State'])
                 else:
@@ -422,7 +422,7 @@ while loop:
                 selectByCity = pd.notnull(accidentsBySt_Cty_Zip['City'])
             else:
                 while not validateCity(cityName, stateName):
-                    cityName = input("Invalid value, enter again or press enter to search for all possibilities: ")
+                    cityName = input("\nInvalid value, enter again or press enter to search for all possibilities: ")
                 if not cityName:
                     selectByCity = pd.notnull(accidentsBySt_Cty_Zip['City'])
                 else: 
@@ -433,7 +433,7 @@ while loop:
                 selectByZip = pd.notnull(accidentsBySt_Cty_Zip['Zipcode'])
             else:
                 while not validateZip(zipCode, cityName, stateName):
-                    zipCode = input("Invalid value, enter again or press enter to search for all possibilities: ")
+                    zipCode = input("\nInvalid value, enter again or press enter to search for all possibilities: ")
                 if not zipCode:
                     selectByZip = pd.notnull(accidentsBySt_Cty_Zip['Zipcode'])
                 else:
@@ -461,7 +461,7 @@ while loop:
                     year = ''
                 # If the user entered something invalid, repeat the loop
                 elif not validateYear(year):
-                    printMessage("Invalid year, try again or press enter to search all possibilities")
+                    printMessage("\nInvalid year, try again or press enter to search all possibilities")
                     year = None
                 # If the user entered a valid year, add it to the date format and proceed
                 else:
@@ -478,7 +478,7 @@ while loop:
                 if not month:
                     month = ''
                 elif not validateMonth(month):
-                    printMessage("Invalid month, try again or press enter to search all possibilities")
+                    printMessage("\nInvalid month, try again or press enter to search all possibilities")
                     month = None
                 else:
                     dateFormat += '%m'
@@ -494,7 +494,7 @@ while loop:
                 if not day:
                     day = ''
                 elif not validateDay(day):
-                    printMessage("Invalid day, try again or press enter to search all possibilities")
+                    printMessage("\nInvalid day, try again or press enter to search all possibilities")
                     day = None
                 else:
                     dateFormat += '%d'
@@ -530,7 +530,7 @@ while loop:
                     try:
                         minTemp = float(minTemp)
                         while not simpleValidation('Temperature(F)', minTemp):
-                            minTemp = input("Invalid value, enter again or press enter to search for all possibilities: ")
+                            minTemp = input("\nInvalid value, enter again or press enter to search for all possibilities: ")
                         if not minTemp:
                             selectByMinTemp = pd.notnull(accidentsByTemp_Vis['Temperature(F)'])
                             askForMinTemp = False
@@ -538,7 +538,7 @@ while loop:
                             selectByMinTemp = accidentsByTemp_Vis['Temperature(F)'] > minTemp
                             askForMinTemp = False
                     except ValueError:
-                        print("Invalid input. Please enter a number choice.")
+                        print("\nInvalid input. Please enter a number choice.")
                 
             askForMaxTemp = True
             while askForMaxTemp:
@@ -550,11 +550,21 @@ while loop:
                     try:
                         maxTemp = float(maxTemp)
                         if minTemp:
-                            if maxTemp < minTemp:
-                                print("Invalid input. Maximum temperature must be greater than the minimum temperature.")
+                            if maxTemp <= minTemp:
+                                print("\nInvalid input: Maximum temperature must be greater than the minimum temperature.")
+                                print("Please try again or press enter to search for all possibilities.")
+                            else:
+                                while not simpleValidation('Temperature(F)', maxTemp):
+                                    maxTemp = input("\nInvalid value, enter again or press enter to search for all possibilities: ")
+                                if not maxTemp:
+                                    selectByMaxTemp = pd.notnull(accidentsByTemp_Vis['Temperature(F)'])
+                                    askForMaxTemp = False
+                                else:
+                                    selectByMaxTemp = accidentsByTemp_Vis['Temperature(F)'] < maxTemp
+                                    askForMaxTemp = False
                         else:
                             while not simpleValidation('Temperature(F)', maxTemp):
-                                maxTemp = input("Invalid value, enter again or press enter to search for all possibilities: ")
+                                maxTemp = input("\nInvalid value, enter again or press enter to search for all possibilities: ")
                             if not maxTemp:
                                 selectByMaxTemp = pd.notnull(accidentsByTemp_Vis['Temperature(F)'])
                                 askForMaxTemp = False
@@ -562,7 +572,7 @@ while loop:
                                 selectByMaxTemp = accidentsByTemp_Vis['Temperature(F)'] < maxTemp
                                 askForMaxTemp = False
                     except ValueError:
-                        print("Invalid input. Please enter a number choice.")
+                        print("\nInvalid input. Please enter a number choice.")
 
             askForMinVis = True
             while askForMinVis:
@@ -574,7 +584,7 @@ while loop:
                     try:
                         minVis = float(minVis)
                         while not simpleValidation('Visibility(mi)', minVis):
-                            minVis = input("Invalid value, enter again or press enter to search for all possibilities: ")
+                            minVis = input("\nInvalid value, enter again or press enter to search for all possibilities: ")
                         if not minVis:
                             selectByMinVis = pd.notnull(accidentsByTemp_Vis['Visibility(mi)'])
                             askForMinVis = False
@@ -582,7 +592,7 @@ while loop:
                             selectByMinVis = accidentsByTemp_Vis['Visibility(mi)'] > minVis
                             askForMinVis = False
                     except ValueError:
-                        print("Invalid input. Please enter a number choice.")
+                        print("\nInvalid input. Please enter a number choice.")
 
             askForMaxVis = True
             while askForMaxVis:
@@ -594,11 +604,21 @@ while loop:
                     try:
                         maxVis = float(maxVis)
                         if minVis:
-                            if maxVis < minVis:
-                                print("Invalid input. Maximum visibility must be greater than the minimum visibility.")
+                            if maxVis <= minVis:
+                                print("\nInvalid input: Maximum visibility must be greater than the minimum visibility.")
+                                print("Please try again or press enter to search for all possibilities.")
+                            else:
+                                while not simpleValidation('Visibility(mi)', maxVis):
+                                    maxVis = input("\nInvalid value, enter again or press enter to search for all possibilities: ")
+                                if not maxVis:
+                                    selectByMaxVis = pd.notnull(accidentsByTemp_Vis['Visibility(mi)'])
+                                    askForMaxVis = False
+                                else:
+                                    selectByMaxVis = accidentsByTemp_Vis['Visibility(mi)'] < maxVis
+                                    askForMaxVis = False
                         else:
                             while not simpleValidation('Visibility(mi)', maxVis):
-                                maxVis = input("Invalid value, enter again or press enter to search for all possibilities: ")
+                                maxVis = input("\nInvalid value, enter again or press enter to search for all possibilities: ")
                             if not maxVis:
                                 selectByMaxVis = pd.notnull(accidentsByTemp_Vis['Visibility(mi)'])
                                 askForMaxVis = False
@@ -606,7 +626,7 @@ while loop:
                                 selectByMaxVis = accidentsByTemp_Vis['Visibility(mi)'] < maxVis
                                 askForMaxVis = False
                     except ValueError:
-                        print("Invalid input. Please enter a number choice.")
+                        print("\nInvalid input. Please enter a number choice.")
 
             # Start searching for rows by given data
             totalByTemp_Vis = accidentsByTemp_Vis[(selectByMinTemp) & (selectByMaxTemp) & (selectByMinVis) & (selectByMaxVis)].count()
