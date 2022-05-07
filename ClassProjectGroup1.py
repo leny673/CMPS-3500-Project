@@ -1,20 +1,19 @@
 # CLASS Project
 # PYTHON IMPLEMENTATION: BASIC DATA ANALYSIS
 # COURSE: CMPS 3500
-# DATE: 04/06/22
-# Student 1:
-# Student 2: 
-# Student 3: 
-# Student 4:
+# DATE: 05/12/22
+# Student 1: Elena Castaneda
+# Student 2: Elijah Morris
+# Student 3: Marcus Schmidt
+# Student 4: Michael Wisehart
 # DESCRIPTION: Implementation Basic Data Analysys Routines
-# TO DO: LINES 438
+
 import time
 import pandas as pd
 
-# Output: Implemented functions to answer the following questions about any data sets provided:
-def print_menu():
+def printMenu():
     print()
-    print(60 * "-" , "MENU" , 60 * "-")
+    print(30 * "-" , "MENU" , 30 * "-")
     print("1. Load Data")
     print("2. Process Data.")
     print("3. Print Answers.")
@@ -22,16 +21,21 @@ def print_menu():
     print("5. Search Accidents (Year, Month, and Day).")
     print("6. Search Accidents (Temperature Range and Visibility Range).")
     print("7. Exit")
-    print(126 * "-")
+    print(66 * "-")
+
+# Print the message in a standardized message format that includes the current time
+def printMessage(*args):
+    print("[ ", round(time.process_time(), 4)," ] ", *args)
 
 # Validatation: Validate if input is in the dataframe
-def validateState(input):
-    if not input:
-        return True
-    if input not in df['State'].values:
-        return False
-    else:
-        return True
+def simpleValidation(column, value):
+    # Confirm that the column is one of the ones that this method can safely operate on
+    if column == 'State' or column == 'Temperature(F)' or column == 'Visibility(mi)':
+        # Then return true if the value is None or exists in the data frame
+        if not value or value in df[column].values:
+            return True
+        else:
+            return False
 
 def validateCity(city, state):
     if not city:
@@ -73,48 +77,35 @@ def validateZip(zip, city, state):
             else:
                 return True
 
-def validateYear(input):
-    if not input:
+def validateYear(year):
+    if not year:
         return True
-    dfCopy = df.copy()
-    dfCopy['Start_Time'] = pd.to_datetime(dfCopy['Start_Time']).dt.strftime('%Y')
-    if input not in dfCopy.values:
+
+    # Return whether or not this year exists in the data set
+    years = pd.to_datetime(df['Start_Time']).dt.strftime('%Y')
+    if year not in years.values:
         return False
     else:
         return True
 
-def validateMonth(input):
-    if not input:
+def validateMonth(month):
+    if not month:
         return True
-    dfCopy = df.copy()
-    dfCopy['Start_Time'] = pd.to_datetime(dfCopy['Start_Time']).dt.strftime('%m')
-    if input not in dfCopy.values:
+
+    # Return whether or not this year exists in the data set
+    months = pd.to_datetime(df['Start_Time']).dt.strftime('%m')
+    if month not in months.values:
         return False
     else:
         return True
 
-def validateDay(input):
-    if not input:
-        return True
-    dfCopy = df.copy()
-    dfCopy['Start_Time'] = pd.to_datetime(dfCopy['Start_Time']).dt.strftime('%d')
-    if input not in dfCopy.values:
-        return False
-    else:
+def validateDay(day):
+    if not day:
         return True
 
-def validateTemp(input):
-    if not input:
-        return True
-    if input not in df['Temperature(F)'].values:
-        return False
-    else:
-        return True
-
-def validateVis(input):
-    if not input:
-        return True
-    if input not in df['Visibility(mi)'].values:
+    # Return whether or not this year exists in the data set
+    days = pd.to_datetime(df['Start_Time']).dt.strftime('%d')
+    if day not in days.values:
         return False
     else:
         return True
@@ -127,87 +118,92 @@ def anyOtherValidation(input):
     else:
         return True
 
-# Used to answer question 1.
+# Convert a month's number (1-12) into its name
 def getMonth(month):
-    theMonths = ["January","February","March","April", "May", "June", "July", "August", "September", "October", "November","December"]
-    monthName = theMonths[month-1]
-    return monthName
+    if month >= 1 and month <= 12:
+        months = ["January","February","March","April", "May", "June", "July", "August", "September", "October", "November","December"]
+        return months[month-1]
+    else:
+        return "ERROR"
 
-# To answer questions in the structure: "What is the state that had the most accidents in 2020?", with a given year.
-def mostAccInStByYR(yr):
-    # Copy original dataframe to modify Start_Time by year
-    dfCopy = df.copy()
-    dfCopy['Start_Time'] = pd.to_datetime(dfCopy['Start_Time']).dt.strftime('%Y')
-    # Copy columns Start_Time and State into a new dataframe to focus on specific columns based on the question
-    questionDF = dfCopy[['Start_Time','State']]
-    # Select only rows by given year
-    selectByYear = questionDF['Start_Time'] == yr
-    # Count the number of year appearances by State and get the top result
-    possibleAnswers = questionDF[selectByYear].value_counts().index[0]
-    state = possibleAnswers[1]
-    return state
+# Find the state with the most accidents in a given year (and with optional severity)
+def maxAccidentState(year, severity = None):
+    if df is None:
+        return "ERROR - UNINITIALIZED DATA FRAME"
+    
+    # Copy only the columns that are relevant to this method
+    data = df[['State','Start_Time','Severity']].copy()
+    # Reformat the Start_Time column to be searchable by year
+    data['Start_Time'] = pd.to_datetime(data['Start_Time']).dt.strftime('%Y')
 
-# To answer questions in the structure: "What is the state that had the most accidents of severity 2 in 2021?", with
-# a given year and severity.
-def mostAccInStBySev_YR(yr, sev):
-    # Copy original dataframe to modify Start_Time by year
-    dfCopy = df.copy()
-    dfCopy['Start_Time'] = pd.to_datetime(dfCopy['Start_Time']).dt.strftime('%Y')
-    # Copy columns Start_Time, State, and Severity into a new dataframe to focus on specific columns based on the question
-    questionDF = dfCopy[['Start_Time','State','Severity']]
-    # Select only rows by given year and severity
-    selectByYear = questionDF['Start_Time'] == yr
-    selectBySev = questionDF['Severity'] == sev
-    # Count the number of year AND severity appearances by state and get the top result
-    possibleAnswers = questionDF[(selectByYear) & (selectBySev)].value_counts().index[0]
-    state = possibleAnswers[1]
-    return state
+    # Search the data for rows that match the provided conditions
+    rows = None
+    if severity is not None:
+        rows = data.loc[(data['Start_Time'] == year) & (data['Severity'] == severity)]
+    else:
+        rows = data.loc[data['Start_Time'] == year]
 
-# To answer questions in the structure: "What severity is the most common in Virginia?", with given state.
-def sevByState(st):
+    # Count the number of times each state occurs in the searched rows and return the most frequent result
+    rankedStates = rows['State'].value_counts()
+    if rankedStates.size > 0:
+        return rankedStates.index[0]
+    else:
+        return "NULL"
+
+# Find the most common severity in the provided state
+def sevByState(state):
+    if df is None:
+        return "ERROR - UNINITIALIZED DATA FRAME"
+    
     # Copy columns State and Severity into a new dataframe to focus on specific columns based on the question
-    dfCopy = df.copy()
-    questionDF = dfCopy[['State','Severity']]
-    # Select only rows by given state
-    selectByState = questionDF['State'] == st
-    # Count the number of state appearances by severity and get the top result
-    possibleAnswers = questionDF[selectByState].value_counts().index[0]
-    severity = possibleAnswers[1]
-    return severity
+    data = df[['State','Severity']].copy()
+    
+    # Select only rows with the given state
+    rows = data.loc[data['State'] == state]
+    
+    # Count how often each severity appears for this state
+    rankedSeverity = rows['Severity'].value_counts()
+    if rankedSeverity.size > 0:
+        return rankedSeverity.index[0]
+    else:
+        return "NULL"
 
-# To answer questions in the structure: "What are the 5 cities that had the most accidents in 2019 in California?", with
-# given year and state.
-def fiveCitiesByYR_ST(yr, st):
-    # Copy original dataframe to modify Start_Time by year
-    dfCopy = df.copy()
-    dfCopy['Start_Time'] = pd.to_datetime(dfCopy['Start_Time']).dt.strftime('%Y')
-    # Copy columns Start_Time, State, and City into a new dataframe to focus on specific columns based on the question
-    questionDF = dfCopy[['Start_Time','State','City']]
-    # Select only rows by given state and year
-    selectByState = questionDF['State'] == st
-    selectByYear = questionDF['Start_Time'] == yr
-    # Count the number of state AND year appearances by city and get the top 5 results
-    possibleAnswers = questionDF[(selectByState) & (selectByYear)].value_counts().index[0:5]
-    cities = possibleAnswers.get_level_values('City')
-    return cities
+# Find the top 'num' cities with the most accidents in the provided year and state
+def maxAccidentCities(year, state, num):
+    if df is None:
+        return "ERROR - UNINITIALIZED DATA FRAME"
+    elif num < 1:
+        return "ERROR - INVALID NUM"
 
-# To answer questions in the structure: "What was the average humidity and average temperature of 
-# all accidents of severity 4 that occurred in 2021?", with given year and severity.
-def avgHumid_TempBySev_YR(yr, sev):
     # Copy original dataframe to modify Start_Time by year
-    dfCopy = df.copy()
-    dfCopy['Start_Time'] = pd.to_datetime(dfCopy['Start_Time']).dt.strftime('%Y')
-    # Copy columns Start_Time, Severity, Humidity(%), and Temperature(F) into a new dataframe to focus on specific columns based on the question
-    questionDF = dfCopy[['Start_Time','Severity','Humidity(%)','Temperature(F)']]
-    # Select only rows by given state and severity
-    selectByYear = questionDF['Start_Time'] == yr
-    selectBySeverity = questionDF['Severity'] == sev
-    questionDF = questionDF[(selectByYear) & (selectBySeverity)]
-    # Get the average (mean) of the humidity and temperature from the dataframe created to fit the question conditions
-    averageHumidity = questionDF['Humidity(%)'].mean()
-    averageTemperature = questionDF['Temperature(F)'].mean()
-    averageHumidity = round(averageHumidity, 2)
-    averageTemperature = round(averageTemperature, 2)
+    data = df[['State', 'City', 'Start_Time']].copy()
+    data['Start_Time'] = pd.to_datetime(data['Start_Time']).dt.strftime('%Y')
+    
+    # Select rows with the provided conditions
+    rows = data.loc[(data['State'] == state) & (data['Start_Time'] == year)]
+    
+    # Count how many accidents occur in each city and return the requested number of top results
+    rankedCities = rows['City'].value_counts()
+    if rankedCities.size >= num:
+        return rankedCities.index[0:num]
+    else:
+        return "ERROR - NOT ENOUGH CITIES"
+
+# Find average humidity and temperature of accidents with a certain year and severity
+def averageConditions(year, severity):
+    if df is None:
+        return "ERROR - UNINITIALIZED DATA FRAME"
+
+    # Copy original dataframe to modify Start_Time by year
+    data = df[['Start_Time','Severity','Humidity(%)','Temperature(F)']].copy()
+    data['Start_Time'] = pd.to_datetime(data['Start_Time']).dt.strftime('%Y')
+    
+    # Select rows with the provided conditions
+    rows = data.loc[(data['Start_Time'] == year) & (data['Severity'] == severity)]
+    
+    # Get the average (mean) of the humidity and temperature from the selected rows
+    averageHumidity = round(rows['Humidity(%)'].mean(), 2)
+    averageTemperature = round(rows['Temperature(F)'].mean(), 2)
     return averageHumidity, averageTemperature
 
 # To answer questions in the structure: "What was the maximum visibility of all accidents of severity 2 
@@ -261,60 +257,70 @@ def longestAcc(startMonth, endMonth, st, yr):
 def getAnswers():
     # For all these questions, Start_Time is used as the reference date to determine the year and month of the accident.
     print("\nAnswering questions:\n********************")
-        # 1. In what month were there more accidents reported?
-    print("[ ", round(time.process_time(), 5)," ] 1. The month with the most accidents reported is:")
+    
+    # 1. In what month were the most accidents reported?
+    printMessage("1. The month with the most accidents reported is:")
     dfCopy = df.copy()
     dfCopy['Start_Time'] = pd.to_datetime(dfCopy['Start_Time']).dt.strftime('%m')
     newMonth = dfCopy['Start_Time']
     n = 1
     finalMonth = int((newMonth.value_counts()[:n].index.tolist())[0])
-    print("[ ", round(time.process_time(), 4)," ]", getMonth(finalMonth))
-        # 2. What is the state that had the most accidents in 2020?
-    print("[ ", round(time.process_time(), 4)," ] 2. The state with the most accidents reported in 2020 is:")
-    print("[ ", round(time.process_time(), 4)," ]", mostAccInStByYR("2020"))
-        # 3. What is the state that had the most accidents of severity 2 in 2021?
-    print("[ ", round(time.process_time(), 4)," ] 3. The state with the most accidents of severity 2 in 2021 is:")
-    print("[ ", round(time.process_time(), 4)," ]", mostAccInStBySev_YR("2021", 2))
-        # 4. What severity is the most common in Virginia?
-    print("[ ", round(time.process_time(), 4)," ] 4. The severity most common in VA is:")
-    print("[ ", round(time.process_time(), 4)," ] Severity:", sevByState("VA"))
-        # 5. What are the 5 cities that had the most accidents in 2019 in California?
-    print("[ ", round(time.process_time(), 4)," ] 5. The 5 cities that had the most accidents in 2019 in CA are:")
-    print("[ ", round(time.process_time(), 4)," ]")
-    for i in fiveCitiesByYR_ST("2019", "CA"):
-        print("\t\t\t", i)
-        # 6. What was the average humidity and average temperature of all accidents of severity 4 that occurred in 2021?
-    print("[ ", round(time.process_time(), 4)," ] 6. The average humidity and the average temperature of all accidents of severity 4 that occurred in 2021:")
-    average = avgHumid_TempBySev_YR("2021", 4)
-    print("[ ", round(time.process_time(), 4)," ]")
-    print("\t\t\tAverage humidity:", average[0] ,"%\n\t\t\tAverage temperature is:", average[1], "F")
-        # 7. What are the 3 most common weather conditions (weather_conditions) when accidents occurred?
-    print("[ ", round(time.process_time(), 4)," ] 7. The 3 most common weather conditions when accidents occurred are:")
+    printMessage(getMonth(finalMonth))
+    
+    # 2. What is the state that had the most accidents in 2020?
+    printMessage("2. The state with the most accidents reported in 2020 is:")
+    printMessage(maxAccidentState("2020"))
+    
+    # 3. What is the state that had the most accidents of severity 2 in 2021?
+    printMessage("3. The state with the most accidents of severity 2 in 2021 is:")
+    printMessage(maxAccidentState("2021", 2))
+    
+    # 4. What severity is the most common in Virginia?
+    printMessage("4. The severity most common in VA is:")
+    printMessage("Severity:", sevByState("VA"))
+    
+    # 5. What are the 5 cities that had the most accidents in 2019 in California?
+    printMessage("5. The 5 cities that had the most accidents in 2019 in CA are:")
+    printMessage("")
+    for city in maxAccidentCities("2019", "CA", 5):
+        print("\t\t\t", city)
+    
+    # 6. What was the average humidity and average temperature of all accidents of severity 4 that occurred in 2021?
+    printMessage("6. The average humidity and the average temperature of all accidents of severity 4 that occurred in 2021:")
+    humidity, temperature = averageConditions("2021", 4)
+    printMessage("")
+    print("\t\t\tAverage humidity:", humidity ,"%\n\t\t\tAverage temperature is:", temperature, "F")
+    
+    # 7. What are the 3 most common weather conditions (weather_conditions) when accidents occurred?
+    printMessage("7. The 3 most common weather conditions when accidents occurred are:")
     dfCopy = df.copy()
     accidentsByWeather = dfCopy[['Weather_Condition']]
     mostByWeather= accidentsByWeather.value_counts().index[0:3]
     weathers = mostByWeather.get_level_values('Weather_Condition')
-    print("[ ", round(time.process_time(), 4)," ]")
+    printMessage("")
     for i in weathers:
         print("\t\t\t", i)
-        # 8. What was the maximum visibility of all accidents of severity 2 that occurred in the state of New Hampshire?
-    print("[ ", round(time.process_time(), 4)," ] 8. The maximum visibility of all accidents of severity 2 that occurred in the state of New Hampshire is:")
-    print("[ ", round(time.process_time(), 4)," ]", maxVisBySev_St(2, "NH"),"mi")
-        # 9. How many accidents of each severity were recorded in Bakersfield?
-    print("[ ", round(time.process_time(), 4)," ] 9. The total accidents of each severity recorded in Bakersfield are:")
+    
+    # 8. What was the maximum visibility of all accidents of severity 2 that occurred in the state of New Hampshire?
+    printMessage("8. The maximum visibility of all accidents of severity 2 that occurred in the state of New Hampshire is:")
+    printMessage(maxVisBySev_St(2, "NH"),"mi")
+    
+    # 9. How many accidents of each severity were recorded in Bakersfield?
+    printMessage("9. The total accidents of each severity recorded in Bakersfield are:")
     total = totalBySevInCity('Bakersfield')
-    print("[ ", round(time.process_time(), 4)," ]")
+    printMessage("")
     s = 0
     for i in total:
         print("\t\t\tSeverity", total.index[s],":", i)
         s = s + 1
-        # 10. What was the longest accident (in hours) recorded in Florida in the Spring (March, April, and May) of 2020?
-    print("[ ", round(time.process_time(), 4)," ] 10. The longest accident (in hours) recorded in Flordia in the Spring of 2020 is:")
+    
+    # 10. What was the longest accident (in hours) recorded in Florida in the Spring (March, April, and May) of 2020?
+    printMessage("10. The longest accident (in hours) recorded in Flordia in the Spring of 2020 is:")
     longAccidentTime = longestAcc(3, 5, "FL", 2020)
     if pd.notnull(longAccidentTime):
-        print("[ ", round(time.process_time(), 4)," ]", round(longAccidentTime/(3600),2), "hours.")
+        printMessage(round(longAccidentTime/(3600),2), "hours.")
     else:
-        print("[ ", round(time.process_time(), 4)," ] There were no accidents during this time in this state.")
+        printMessage("There were no accidents during this time in this state.")
 
 # Interfaces: A textual menu should be implemented in a way that the user could load several samples of the same data 
 # set (all data cleaning steps would be the same).
@@ -322,7 +328,7 @@ loop = True
 isLoaded = False     
 isProcessed = False
 while loop:          
-    print_menu()
+    printMenu()
     choice = input("Enter your choice [1-7]: ")
     try:
         choice = int(choice)
@@ -334,35 +340,39 @@ while loop:
             print("[ ", start," ] Starting Script")
             file = 'US_Accidents_data.csv'                      # Has a TOTAL of 711336 written lines
             # Load CSV file and store its data into a dataframe
-            print("[ ", round(time.process_time(), 4)," ] Loading US_Accidents_data.csv")
+            printMessage("Loading US_Accidents_data.csv")
             df = pd.read_csv(file, sep=',')
-            print("[ ", round(time.process_time(), 4)," ] Total Columns Read:", df.shape[1])
-            print("[ ", round(time.process_time(), 4)," ] Total Rows Read:", df.shape[0])
+            printMessage("Total Columns Read:", df.shape[1])
+            printMessage("Total Rows Read:", df.shape[0])
             end = round(time.process_time(), 4)
             print("\nTime to load is: ", round((end - start), 4), "seconds")
             isLoaded = True
         
         # Make sure data has been loaded first in order to clean data...
-        elif choice == 2 and isLoaded == False:
+        elif choice == 2 and not isLoaded:
             print("You need to load data first. Please enter '1', then try again...")
         
         # Data Cleaning: Performing the cleaning tasks
-        elif choice == 2 and isLoaded == True:
+        elif choice == 2 and isLoaded:
             print("\nCleaning data set:\n************************************")
             start = round(time.process_time(), 3)
             print("[ ", start," ] Performing Data Clean Up...")
-                # 1. Eliminate all rows with data missing in either of the following columns: ID, Severity, Zipcode, 
-                # Start_Time, End_Time, Visibility(mi), Weather_Condition or Country
+            
+            # 1. Eliminate all rows with data missing in either of the following columns: ID, Severity, Zipcode, 
+            # Start_Time, End_Time, Visibility(mi), Weather_Condition or Country
             df.drop(df[(df['ID'].isnull()) | (df['Severity'].isnull()) | (df['Zipcode'].isnull()) | 
             (df['Start_Time'].isnull()) | (df['End_Time'].isnull()) | (df['Visibility(mi)'].isnull()) | 
             (df['Weather_Condition'].isnull()) | (df['Country'].isnull())].index, inplace=True)
-                # 2. Eliminate all rows with empty values in 3 or more columns
-                # thresh: number of required non-NA values...(df.shape[1] returns the number of columns) then minus 3 
+            
+            # 2. Eliminate all rows with empty values in 3 or more columns
+            # thresh: number of required non-NA values...(df.shape[1] returns the number of columns) then minus 3 
             df.dropna(thresh=(df.shape[1])-3, inplace=True)
-                # 3. Eliminate all rows with distance equal to zero
+            
+            # 3. Eliminate all rows with distance equal to zero
             df.drop(df[df['Distance(mi)'] == 0].index, inplace=True)
-                # 4. Only consider in your analysis the first 5 digits of the zipcode
-                # Test cases: df.loc[(df['Zipcode'].str.len() > 5), 'Zipcode']
+            
+            # 4. Only consider in your analysis the first 5 digits of the zipcode
+            # Test cases: df.loc[(df['Zipcode'].str.len() > 5), 'Zipcode']
             zipOver5Digits = df['Zipcode'].str.len() > 5
             fixZips = df.loc[(zipOver5Digits), 'Zipcode'].index
             i = 0
@@ -370,25 +380,26 @@ while loop:
                 index = fixZips[i]
                 df.at[index, "Zipcode"] = df["Zipcode"][index][0:5] 
                 i = i + 1
-                # 5. All accidents that lasted no time (The difference between End_Time and Start_Time is zero) (No data like this?)
-                #df.drop(df[df['End_Time'] == df['Start_Time']].index, inplace=True)
-            print("[ ", round(time.process_time(), 3)," ] Total Rows Read after cleaning is finished:", df.shape[0])
+            
+            # 5. All accidents that lasted no time (The difference between End_Time and Start_Time is zero) (No data like this?)
+            #df.drop(df[df['End_Time'] == df['Start_Time']].index, inplace=True)
+            printMessage("Total Rows Read after cleaning is finished:", df.shape[0])
             end = round(time.process_time(), 4)
             print("\nTime to process is: ", round((end - start), 3))
             isProcessed = True
         
         # Make sure data has been loaded/processed (cleaned) first in order to display data...
-        elif (choice >= 3 and choice <= 6) and isLoaded == False:
+        elif (choice >= 3 and choice <= 6) and not isLoaded:
             print("You need to load data first. Please enter '1', then try again...")
-        elif (choice >= 3 and choice <= 6) and isProcessed == False:
+        elif (choice >= 3 and choice <= 6) and not isProcessed:
             print("You need to process data first. Please enter '2', then try again...")
         
         # Display answers to questions
-        elif choice == 3 and isProcessed == True:
+        elif choice == 3 and isProcessed:
             getAnswers()
         
         # Searching capability
-        elif choice == 4 and isProcessed == True:
+        elif choice == 4 and isProcessed:
             print("\nSearch Accidents:\n*****************")
             # Copy city, state, and zipcode columns 
             accidentsBySt_Cty_Zip = df[['City', 'State', 'Zipcode']]
@@ -399,7 +410,7 @@ while loop:
             if not stateName:
                 selectByState = pd.notnull(accidentsBySt_Cty_Zip['State'])
             else:
-                while validateState(stateName) == False:
+                while not simpleValidation('State', stateName):
                     stateName = input("Invalid value, enter again or press enter to search for all possibilities: ")
                 if not stateName:
                     selectByState = pd.notnull(accidentsBySt_Cty_Zip['State'])
@@ -410,7 +421,7 @@ while loop:
             if not cityName:
                 selectByCity = pd.notnull(accidentsBySt_Cty_Zip['City'])
             else:
-                while validateCity(cityName, stateName) == False:
+                while not validateCity(cityName, stateName):
                     cityName = input("Invalid value, enter again or press enter to search for all possibilities: ")
                 if not cityName:
                     selectByCity = pd.notnull(accidentsBySt_Cty_Zip['City'])
@@ -421,7 +432,7 @@ while loop:
             if not zipCode:
                 selectByZip = pd.notnull(accidentsBySt_Cty_Zip['Zipcode'])
             else:
-                while validateZip(zipCode, cityName, stateName) == False:
+                while not validateZip(zipCode, cityName, stateName):
                     zipCode = input("Invalid value, enter again or press enter to search for all possibilities: ")
                 if not zipCode:
                     selectByZip = pd.notnull(accidentsBySt_Cty_Zip['Zipcode'])
@@ -434,60 +445,75 @@ while loop:
             end = round(time.process_time(), 5)
             print("\nTime to perform search is:", round((end - start), 4), "seconds")
         
-        elif choice == 5 and isProcessed == True:
-            # TO DO: Takes about 15-30+ seconds, any faster way?
+        elif choice == 5 and isProcessed:
             print("\nSearch Accidents:\n*****************")
-            # Copy start time column
-            dfCopy = df.copy()
-            dfCopy['Start_Time'] = pd.to_datetime(dfCopy['Start_Time']).dt.strftime('%Y%m%d')
-            accidentsByYr_Mth_Day = dfCopy[['Start_Time']]
-            # Prompt user for year, month, and day
-            # --- If an empty value is inputted, search using all possibilities
-            start = round(time.process_time(), 5)
-            accYear = input("Enter a Year: ")
-            if not accYear:
-                selectByYear = pd.notnull(pd.to_datetime(accidentsByYr_Mth_Day['Start_Time']).dt.strftime('%Y'))
-            else:
-                while validateYear(accYear) == False:
-                    accYear = input("Invalid value, enter again or press enter to search for all possibilities: ")
-                if not accYear:
-                    selectByYear = pd.notnull(pd.to_datetime(accidentsByYr_Mth_Day['Start_Time']).dt.strftime('%Y'))
-                else:
-                    selectByYear = pd.to_datetime(accidentsByYr_Mth_Day['Start_Time']).dt.strftime('%Y') == accYear
+            start = time.process_time()
 
-            accMonth = input("Enter a Month: ")
-            if not accMonth:
-                selectByMonth = pd.notnull(pd.to_datetime(accidentsByYr_Mth_Day['Start_Time']).dt.strftime('%m'))
-            else:
-                if len(accMonth) < 2:
-                    accMonth = '0' + accMonth
-                while validateMonth(accMonth) == False:
-                    accMonth = input("Invalid value, enter again or press enter to search for all possibilities: ")
-                if not accMonth:
-                    selectByMonth = pd.notnull(pd.to_datetime(accidentsByYr_Mth_Day['Start_Time']).dt.strftime('%m'))
-                else:
-                    selectByMonth = pd.to_datetime(accidentsByYr_Mth_Day['Start_Time']).dt.strftime('%m') == accMonth
+            # Initialize an empty date format
+            dateFormat = ''
 
-            accDay = input("Enter a Day: ")
-            if not accDay:
-                selectByDay = pd.notnull(pd.to_datetime(accidentsByYr_Mth_Day['Start_Time']).dt.strftime('%d'))
-            else:
-                if len(accDay) < 2:
-                    accDay = '0' + accDay
-                while validateDay(accDay) == False:
-                    accDay = input("Invalid value, enter again or press enter to search for all possibilities: ")
-                if not accDay:
-                    selectByDay = pd.notnull(pd.to_datetime(accidentsByYr_Mth_Day['Start_Time']).dt.strftime('%d'))
+            # Prompt the user for a year and validate it (can enter nothing to check every year)
+            year = None
+            while year is None:
+                year = input("Enter a Year: ")
+                # If the user entered nothing, proceed without a specific year
+                if not year:
+                    year = ''
+                # If the user entered something invalid, repeat the loop
+                elif not validateYear(year):
+                    printMessage("Invalid year, try again or press enter to search all possibilities")
+                    year = None
+                # If the user entered a valid year, add it to the date format and proceed
                 else:
-                    selectByDay = pd.to_datetime(accidentsByYr_Mth_Day['Start_Time']).dt.strftime('%d') == accDay
+                    dateFormat += '%Y'
 
-            # Start searching for rows by given data
-            totalByYr_Mth_Day = accidentsByYr_Mth_Day[(selectByYear) & (selectByMonth) & (selectByDay)].count()
-            print("\nThere were",totalByYr_Mth_Day.value_counts().index[0], "accidents.")
-            end = round(time.process_time(), 5)
+            month = None
+            while month is None:
+                month = input("Enter a Month (1-12): ")
+
+                # Ensure that month is two digits (e.g. 1 => 01)
+                if len(month) == 1:
+                    month = "0" + month
+
+                if not month:
+                    month = ''
+                elif not validateMonth(month):
+                    printMessage("Invalid month, try again or press enter to search all possibilities")
+                    month = None
+                else:
+                    dateFormat += '%m'
+
+            day = None
+            while day is None:
+                day = input("Enter a Day (1-31): ")
+
+                # Ensure that day is two digits (e.g. 1 => 01)
+                if len(day) == 1:
+                    day = "0" + day
+
+                if not day:
+                    day = ''
+                elif not validateDay(day):
+                    printMessage("Invalid day, try again or press enter to search all possibilities")
+                    day = None
+                else:
+                    dateFormat += '%d'
+
+            # Count the number of times this date appears in the data frame
+            dates = pd.to_datetime(df['Start_Time']).dt.strftime(dateFormat)
+            date = str(year) + str(month) + str(day)
+            count = 0
+            try:
+                count = dates.value_counts()[date]
+            # If the date does not exist in the data frame, catch the error but don't do anything (count is already 0)
+            except KeyError:
+                pass
+
+            end = time.process_time()
+            print("\nThere were ", count, " accidents.")
             print("\nTime to perform search is:", round((end - start), 4), "seconds")
         
-        elif choice == 6 and isProcessed == True:
+        elif choice == 6 and isProcessed:
             print("\nSearch Accidents:\n*****************")
             # Copy temperature and visibility columns
             accidentsByTemp_Vis = df[['Temperature(F)', 'Visibility(mi)']]
@@ -503,7 +529,7 @@ while loop:
                 else:
                     try:
                         minTemp = float(minTemp)
-                        while validateTemp(minTemp) == False:
+                        while not simpleValidation('Temperature(F)', minTemp):
                             minTemp = input("Invalid value, enter again or press enter to search for all possibilities: ")
                         if not minTemp:
                             selectByMinTemp = pd.notnull(accidentsByTemp_Vis['Temperature(F)'])
@@ -527,7 +553,7 @@ while loop:
                             if maxTemp < minTemp:
                                 print("Invalid input. Maximum temperature must be greater than the minimum temperature.")
                         else:
-                            while validateTemp(maxTemp) == False:
+                            while not simpleValidation('Temperature(F)', maxTemp):
                                 maxTemp = input("Invalid value, enter again or press enter to search for all possibilities: ")
                             if not maxTemp:
                                 selectByMaxTemp = pd.notnull(accidentsByTemp_Vis['Temperature(F)'])
@@ -547,7 +573,7 @@ while loop:
                 else:
                     try:
                         minVis = float(minVis)
-                        while validateVis(minVis) == False:
+                        while not simpleValidation('Visibility(mi)', minVis):
                             minVis = input("Invalid value, enter again or press enter to search for all possibilities: ")
                         if not minVis:
                             selectByMinVis = pd.notnull(accidentsByTemp_Vis['Visibility(mi)'])
@@ -571,7 +597,7 @@ while loop:
                             if maxVis < minVis:
                                 print("Invalid input. Maximum visibility must be greater than the minimum visibility.")
                         else:
-                            while validateVis(maxVis) == False:
+                            while not simpleValidation('Visibility(mi)', maxVis):
                                 maxVis = input("Invalid value, enter again or press enter to search for all possibilities: ")
                             if not maxVis:
                                 selectByMaxVis = pd.notnull(accidentsByTemp_Vis['Visibility(mi)'])
@@ -595,4 +621,3 @@ while loop:
             print("Invalid input. Please enter a valid choice [1-7].")
     except ValueError:
         print("Invalid input. Please enter a number choice.") 
-    
