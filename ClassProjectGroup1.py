@@ -293,12 +293,10 @@ def getAnswers():
     
     # 7. What are the 3 most common weather conditions (weather_conditions) when accidents occurred?
     printMessage("7. The 3 most common weather conditions when accidents occurred are:")
-    dfCopy = df.copy()
-    accidentsByWeather = dfCopy[['Weather_Condition']]
-    mostByWeather= accidentsByWeather.value_counts().index[0:3]
-    weathers = mostByWeather.get_level_values('Weather_Condition')
+    conditionCount = df['Weather_Condition'].value_counts()
+    mostCommon = conditionCount.index[0:3]
     printMessage("")
-    for i in weathers:
+    for i in mostCommon:
         print("\t\t\t", i)
     
     # 8. What was the maximum visibility of all accidents of severity 2 that occurred in the state of New Hampshire?
