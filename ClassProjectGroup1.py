@@ -281,8 +281,9 @@ def getAnswers():
     
     # 5. What are the 5 cities that had the most accidents in 2019 in California?
     printMessage("5. The 5 cities that had the most accidents in 2019 in CA are:")
+    topCities = maxAccidentCities("2019", "CA", 5)
     printMessage("")
-    for city in maxAccidentCities("2019", "CA", 5):
+    for city in topCities:
         print("\t\t\t", city)
     
     # 6. What was the average humidity and average temperature of all accidents of severity 4 that occurred in 2021?
@@ -334,17 +335,24 @@ while loop:
         # Data Loading: Read data from the csv files
         if choice == 1:     
             print("\nLoading input data set:\n************************************")
+            isProcessed = False
+            file = 'US_Accidents_data.csv'
+
+            # Start timing the process
             start = round(time.process_time(), 4)
-            print("[ ", start," ] Starting Script")
-            file = 'US_Accidents_data.csv'                      # Has a TOTAL of 711336 written lines
+            print("[ ", start," ]  Starting Script")
+
             # Load CSV file and store its data into a dataframe
             printMessage("Loading US_Accidents_data.csv")
-            df = pd.read_csv(file, sep=',')
-            printMessage("Total Columns Read:", df.shape[1])
-            printMessage("Total Rows Read:", df.shape[0])
-            end = round(time.process_time(), 4)
-            print("\nTime to load is: ", round((end - start), 4), "seconds")
-            isLoaded = True
+            try:
+                df = pd.read_csv(file, sep=',')
+                printMessage("Total Columns Read:", df.shape[1])
+                printMessage("Total Rows Read:", df.shape[0])
+                end = round(time.process_time(), 4)
+                print("\nTime to load is: ", round((end - start), 4), "seconds")
+                isLoaded = True
+            except FileNotFoundError:
+                printMessage("Could not find file, please confirm it is in the correct directory")
         
         # Make sure data has been loaded first in order to clean data...
         elif choice == 2 and not isLoaded:
@@ -353,38 +361,56 @@ while loop:
         # Data Cleaning: Performing the cleaning tasks
         elif choice == 2 and isLoaded:
             print("\nCleaning data set:\n************************************")
-            start = round(time.process_time(), 3)
-            print("[ ", start," ] Performing Data Clean Up...")
+            start = round(time.process_time(), 4)
+            print("[ ", start, " ]  Performing Data Clean Up...")
+
+            # First, confirm that all of the absolutely necessary columns exist in the file that has been loaded
+            valid = True
+            columns = ['ID', 'Severity', 'Start_Time', 'End_Time', 'Distance(mi)', 'City', 'State', 'Zipcode',
+                       'Country', 'Weather_Timestamp', 'Humidity(%)', 'Visibility(mi)', 'Weather_Condition']
+            for column in columns:
+                # Attempt to access each column
+                try:
+                    df[column]
+                # And catch it if it fails (indicating the column does not exist)
+                except KeyError:
+                    printMessage("Invalid file format, cannot use data")
+                    valid = False
+                    break
             
-            # 1. Eliminate all rows with data missing in either of the following columns: ID, Severity, Zipcode, 
-            # Start_Time, End_Time, Visibility(mi), Weather_Condition or Country
-            df.drop(df[(df['ID'].isnull()) | (df['Severity'].isnull()) | (df['Zipcode'].isnull()) | 
-            (df['Start_Time'].isnull()) | (df['End_Time'].isnull()) | (df['Visibility(mi)'].isnull()) | 
-            (df['Weather_Condition'].isnull()) | (df['Country'].isnull())].index, inplace=True)
-            
-            # 2. Eliminate all rows with empty values in 3 or more columns
-            # thresh: number of required non-NA values...(df.shape[1] returns the number of columns) then minus 3 
-            df.dropna(thresh=(df.shape[1])-3, inplace=True)
-            
-            # 3. Eliminate all rows with distance equal to zero
-            df.drop(df[df['Distance(mi)'] == 0].index, inplace=True)
-            
-            # 4. Only consider in your analysis the first 5 digits of the zipcode
-            # Test cases: df.loc[(df['Zipcode'].str.len() > 5), 'Zipcode']
-            zipOver5Digits = df['Zipcode'].str.len() > 5
-            fixZips = df.loc[(zipOver5Digits), 'Zipcode'].index
-            i = 0
-            while i < len(fixZips):
-                index = fixZips[i]
-                df.at[index, "Zipcode"] = df["Zipcode"][index][0:5] 
-                i = i + 1
-            
-            # 5. All accidents that lasted no time (The difference between End_Time and Start_Time is zero) (No data like this?)
-            #df.drop(df[df['End_Time'] == df['Start_Time']].index, inplace=True)
-            printMessage("Total Rows Read after cleaning is finished:", df.shape[0])
-            end = round(time.process_time(), 4)
-            print("\nTime to process is: ", round((end - start), 3))
-            isProcessed = True
+            # Only continue processing the data if all of these columns exist
+            if valid:
+                # 1. Eliminate all rows with data missing in either of the following columns: ID, Severity, Zipcode, 
+                # Start_Time, End_Time, Visibility(mi), Weather_Condition or Country
+                df.drop(df[(df['ID'].isnull()) | (df['Severity'].isnull()) | (df['Zipcode'].isnull()) | 
+                (df['Start_Time'].isnull()) | (df['End_Time'].isnull()) | (df['Visibility(mi)'].isnull()) | 
+                (df['Weather_Condition'].isnull()) | (df['Country'].isnull())].index, inplace=True)
+                
+                # 2. Eliminate all rows with empty values in 3 or more columns
+                # thresh: number of required non-NA values...(df.shape[1] returns the number of columns) then minus 3 
+                df.dropna(thresh=(df.shape[1])-3, inplace=True)
+                
+                # 3. Eliminate all rows with distance equal to zero
+                df.drop(df[df['Distance(mi)'] == 0].index, inplace=True)
+                
+                # 4. Only consider in your analysis the first 5 digits of the zipcode
+                # Test cases: df.loc[(df['Zipcode'].str.len() > 5), 'Zipcode']
+                zipOver5Digits = df['Zipcode'].str.len() > 5
+                fixZips = df.loc[(zipOver5Digits), 'Zipcode'].index
+                i = 0
+                while i < len(fixZips):
+                    index = fixZips[i]
+                    df.at[index, "Zipcode"] = df["Zipcode"][index][0:5] 
+                    i = i + 1
+                
+                # 5. All accidents that lasted no time (The difference between End_Time and Start_Time is zero)
+                df.drop(df[df['End_Time'] == df['Start_Time']].index, inplace=True)
+
+                # Print the results
+                end = round(time.process_time(), 4)
+                printMessage("Total Rows Read after cleaning is finished:", df.shape[0])
+                print("\nTime to process is: ", round((end - start), 3))
+                isProcessed = True
         
         # Make sure data has been loaded/processed (cleaned) first in order to display data...
         elif (choice >= 3 and choice <= 6) and not isLoaded:
@@ -512,123 +538,96 @@ while loop:
             print("\nTime to perform search is:", round((end - start), 4), "seconds")
         
         elif choice == 6 and isProcessed:
-            print("\nSearch Accidents:\n*****************")
-            # Copy temperature and visibility columns
-            accidentsByTemp_Vis = df[['Temperature(F)', 'Visibility(mi)']]
             # Prompt user for a min/max temperature and min/max visibility
-            # --- If an empty value is inputted, search using all possibilities
+            print("\nSearch Accidents:\n*****************")
             start = round(time.process_time(), 5)
-            askForMinTemp = True
-            while askForMinTemp:
+
+            # Grab the columns from the dataset that are relevant to this question
+            data = df[['Temperature(F)', 'Visibility(mi)']]
+
+            # Ask for the minimum temperature
+            minTemp = None
+            while minTemp is None:
                 minTemp = input("Enter a Minimum Temperature (F): ")
+                # If the user does not enter anything, break the loop and don't include this condition
                 if not minTemp:
-                    selectByMinTemp = pd.notnull(accidentsByTemp_Vis['Temperature(F)'])
-                    askForMinTemp = False
+                    break
                 else:
                     try:
                         minTemp = float(minTemp)
-                        while not simpleValidation('Temperature(F)', minTemp):
-                            minTemp = input("\nInvalid value, enter again or press enter to search for all possibilities: ")
-                        if not minTemp:
-                            selectByMinTemp = pd.notnull(accidentsByTemp_Vis['Temperature(F)'])
-                            askForMinTemp = False
+                        # If the number provided is less than absolute zero or more than an arbitrarily huge number, reject it
+                        if minTemp < -459.67 or minTemp > 200:
+                            print("\nInvalid input. Enter between -459 and 200 or press enter to search all possibilities.")
+                            minTemp = None
+                        # However, if it's a valid number then narrow down our current data set to only compliant rows
                         else:
-                            selectByMinTemp = accidentsByTemp_Vis['Temperature(F)'] > minTemp
-                            askForMinTemp = False
+                            data = data.loc[data['Temperature(F)'] >= minTemp]
                     except ValueError:
                         print("\nInvalid input. Please enter a number choice.")
-                
-            askForMaxTemp = True
-            while askForMaxTemp:
+                        minTemp = None
+            
+            maxTemp = None
+            while maxTemp is None:
                 maxTemp = input("Enter a Maximum Temperature (F): ")
+                # If the user does not enter anything, break the loop and don't include this condition
                 if not maxTemp:
-                    selectByMaxTemp = pd.notnull(accidentsByTemp_Vis['Temperature(F)'])
-                    askForMaxTemp = False
+                    break
                 else:
                     try:
                         maxTemp = float(maxTemp)
-                        if minTemp:
-                            if maxTemp <= minTemp:
-                                print("\nInvalid input: Maximum temperature must be greater than the minimum temperature.")
-                                print("Please try again or press enter to search for all possibilities.")
-                            else:
-                                while not simpleValidation('Temperature(F)', maxTemp):
-                                    maxTemp = input("\nInvalid value, enter again or press enter to search for all possibilities: ")
-                                if not maxTemp:
-                                    selectByMaxTemp = pd.notnull(accidentsByTemp_Vis['Temperature(F)'])
-                                    askForMaxTemp = False
-                                else:
-                                    selectByMaxTemp = accidentsByTemp_Vis['Temperature(F)'] < maxTemp
-                                    askForMaxTemp = False
+                        # If maxTemp is less than absolute zero, more than an arbitrarily huge number, or more than minTemp, reject it
+                        if maxTemp < -459.67 or maxTemp > 200 or (minTemp is not None and minTemp > maxTemp):
+                            print("\nInvalid input. Enter between -459 and 200 and larger than minimum temperature, or press enter to search all possibilities.")
+                            maxTemp = None
+                        # However, if it's a valid number then narrow down our current data subset to only compliant rows
                         else:
-                            while not simpleValidation('Temperature(F)', maxTemp):
-                                maxTemp = input("\nInvalid value, enter again or press enter to search for all possibilities: ")
-                            if not maxTemp:
-                                selectByMaxTemp = pd.notnull(accidentsByTemp_Vis['Temperature(F)'])
-                                askForMaxTemp = False
-                            else:
-                                selectByMaxTemp = accidentsByTemp_Vis['Temperature(F)'] < maxTemp
-                                askForMaxTemp = False
+                            data = data.loc[data['Temperature(F)'] <= maxTemp]
                     except ValueError:
                         print("\nInvalid input. Please enter a number choice.")
-
-            askForMinVis = True
-            while askForMinVis:
+                        maxTemp = None
+                
+            minVis = None
+            while minVis is None:
                 minVis = input("Enter a Minimum Visibility (mi): ")
+                # If the user does not enter anything, break the loop and don't include this condition
                 if not minVis:
-                    selectByMinVis = pd.notnull(accidentsByTemp_Vis['Visibility(mi)'])
-                    askForMinVis = False
+                    break
                 else:
                     try:
                         minVis = float(minVis)
-                        while not simpleValidation('Visibility(mi)', minVis):
-                            minVis = input("\nInvalid value, enter again or press enter to search for all possibilities: ")
-                        if not minVis:
-                            selectByMinVis = pd.notnull(accidentsByTemp_Vis['Visibility(mi)'])
-                            askForMinVis = False
+                        # If the number provided is less than zero, reject it
+                        if minVis < 0:
+                            print("\nInvalid input. Enter a number greater than 0 or press enter to search all possibilities.")
+                            minVis = None
+                        # However, if it's a valid number then narrow down our current data subset to only compliant rows
                         else:
-                            selectByMinVis = accidentsByTemp_Vis['Visibility(mi)'] > minVis
-                            askForMinVis = False
+                            data = data.loc[data['Visibility(mi)'] >= minVis]
                     except ValueError:
                         print("\nInvalid input. Please enter a number choice.")
+                        minVis = None
 
-            askForMaxVis = True
-            while askForMaxVis:
+            maxVis = None
+            while maxVis is None:
                 maxVis = input("Enter a Maximum Visibility (mi): ")
+                # If the user does not enter anything, break the loop and don't include this condition
                 if not maxVis:
-                    selectByMaxVis = pd.notnull(accidentsByTemp_Vis['Visibility(mi)'])
-                    askForMaxVis = False
+                    break
                 else:
                     try:
                         maxVis = float(maxVis)
-                        if minVis:
-                            if maxVis <= minVis:
-                                print("\nInvalid input: Maximum visibility must be greater than the minimum visibility.")
-                                print("Please try again or press enter to search for all possibilities.")
-                            else:
-                                while not simpleValidation('Visibility(mi)', maxVis):
-                                    maxVis = input("\nInvalid value, enter again or press enter to search for all possibilities: ")
-                                if not maxVis:
-                                    selectByMaxVis = pd.notnull(accidentsByTemp_Vis['Visibility(mi)'])
-                                    askForMaxVis = False
-                                else:
-                                    selectByMaxVis = accidentsByTemp_Vis['Visibility(mi)'] < maxVis
-                                    askForMaxVis = False
+                        # If the number provided is less than zero or the minimum visibility, reject it
+                        if maxVis < 0 or (minVis is not None and minVis > maxVis):
+                            print("\nInvalid input. Enter a number greater than 0 and the minimum visibility, or press enter to search all possibilities.")
+                            maxVis = None
+                        # However, if it's a valid number then narrow down our current data subset to only compliant rows
                         else:
-                            while not simpleValidation('Visibility(mi)', maxVis):
-                                maxVis = input("\nInvalid value, enter again or press enter to search for all possibilities: ")
-                            if not maxVis:
-                                selectByMaxVis = pd.notnull(accidentsByTemp_Vis['Visibility(mi)'])
-                                askForMaxVis = False
-                            else:
-                                selectByMaxVis = accidentsByTemp_Vis['Visibility(mi)'] < maxVis
-                                askForMaxVis = False
+                            data = data.loc[data['Visibility(mi)'] <= maxVis]
                     except ValueError:
                         print("\nInvalid input. Please enter a number choice.")
+                        maxVis = None
 
-            # Start searching for rows by given data
-            totalByTemp_Vis = accidentsByTemp_Vis[(selectByMinTemp) & (selectByMaxTemp) & (selectByMinVis) & (selectByMaxVis)].count()
-            print("\nThere were",totalByTemp_Vis.value_counts().index[0], "accidents.")
+            # Print results
+            print("\nThere were", data.shape[0], "accidents.")
             end = round(time.process_time(), 5)
             print("\nTime to perform search is:", round((end - start), 4), "seconds")
         
