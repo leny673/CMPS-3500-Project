@@ -255,7 +255,7 @@ def longestAcc(startMonth, endMonth, st, yr):
     return longestAccidentInHrs
 
 # Menu option #1 (returns the data frame read from CSV file and a boolean value of whether it read properly)
-def readFile():
+def readFile(file):
     print("\nLoading input data set:\n************************************")
 
     # Start timing the process
@@ -651,8 +651,7 @@ while loop:
         if choice == 1:
             file = input("Enter the name of the file to load: ")
             isProcessed = False
-            df, isLoaded = readFile()
-            
+            df, isLoaded = readFile(file)    
         # Catch options 2-6 if the data has not been loaded
         elif (choice >= 2 and choice <= 6) and not isLoaded:
             print("You need to load data first. Please enter '1', then try again...")
