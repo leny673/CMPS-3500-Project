@@ -257,15 +257,14 @@ def longestAcc(startMonth, endMonth, st, yr):
 # Menu option #1 (returns the data frame read from CSV file and a boolean value of whether it read properly)
 def readFile():
     print("\nLoading input data set:\n************************************")
-    file = 'US_Accidents_data.csv'
-    isLoaded = False
+
 
     # Start timing the process
     start = round(time.process_time(), 4)
     print("[ ", start," ]  Starting Script")
 
     # Load CSV file and store its data into a dataframe
-    printMessage("Loading US_Accidents_data.csv")
+    printMessage("Loading")
     try:
         df = pd.read_csv(file, sep=',')
         printMessage("Total Columns Read:", df.shape[1])
@@ -652,9 +651,12 @@ while loop:
 
         # Option 1: Load the data from the CSV file
         if choice == 1:
+            file = input("Enter the name of the file to load and clean\n")
             isProcessed = False
+            df = pd.read_csv(file)
             df, isLoaded = readFile()
-
+            
+        
         # Catch options 2-6 if the data has not been loaded
         elif (choice >= 2 and choice <= 6) and not isLoaded:
             print("You need to load data first. Please enter '1', then try again...")
