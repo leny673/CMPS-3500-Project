@@ -258,7 +258,6 @@ def longestAcc(startMonth, endMonth, st, yr):
 def readFile():
     print("\nLoading input data set:\n************************************")
 
-
     # Start timing the process
     start = round(time.process_time(), 4)
     print("[ ", start," ]  Starting Script")
@@ -271,11 +270,10 @@ def readFile():
         printMessage("Total Rows Read:", df.shape[0])
         end = round(time.process_time(), 4)
         print("\nTime to load is: ", round((end - start), 4), "seconds")
-        isLoaded = True
+        return df, True
     except FileNotFoundError:
         printMessage("Could not find file, please confirm it is in the correct directory")
-
-    return df, isLoaded
+        return None, False
 
 # Menu option #2 (returns a boolean value of whether the data was fully cleaned and is ready to use)
 def cleanData(df):
@@ -651,12 +649,10 @@ while loop:
 
         # Option 1: Load the data from the CSV file
         if choice == 1:
-            file = input("Enter the name of the file to load and clean\n")
+            file = input("Enter the name of the file to load: ")
             isProcessed = False
-            df = pd.read_csv(file)
             df, isLoaded = readFile()
             
-        
         # Catch options 2-6 if the data has not been loaded
         elif (choice >= 2 and choice <= 6) and not isLoaded:
             print("You need to load data first. Please enter '1', then try again...")
