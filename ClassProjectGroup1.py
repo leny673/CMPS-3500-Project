@@ -653,9 +653,11 @@ while loop:
         if choice == 1:
             file = input("Enter the name of the file to load and clean\n")
             isProcessed = False
-            df = pd.read_csv(file)
-            df, isLoaded = readFile()
-            
+            try:
+                df = pd.read_csv(file)
+                df, isLoaded = readFile()
+            except FileNotFoundError:
+                printMessage("Could not find file, please confirm it is in the correct directory")     
         
         # Catch options 2-6 if the data has not been loaded
         elif (choice >= 2 and choice <= 6) and not isLoaded:
